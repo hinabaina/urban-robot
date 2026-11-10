@@ -1,0 +1,26 @@
+{
+  "start": {
+    "pockets": {"ore": 0, "grain": 10, "ingot": 0},
+    "trust": 3,
+    "unlocked": ["pickaxe", "can", "seed", "ladder"]
+  },
+  "clock": {
+    "seconds_per_hour": 10.0,
+    "sim_tick": 0.25,
+    "day_start_hour": 6.0,
+    "drone_hour": 18.0,
+    "sleep_hour": 22.0,
+    "night_speed": 20.0,
+    "speeds": [1.0, 2.0],
+    "drone_seconds": 5.0,
+    "drone_pickup_at": 0.5
+  },
+  "days": [
+    {"quota": 5, "rocket_part": "base", "gift": {"unlock": ["conveyor", "drill", "furnace"], "pockets": {"ingot": 5}}},
+    {"quota": 10, "rocket_part": "engine", "gift": {"unlock": ["sprinkler", "harvester"]}},
+    {"quota": 20, "rocket_part": "tank"},
+    {"quota": 35, "rocket_part": "hull"},
+    {"quota": 50, "rocket_part": "nose"}
+  ],
+  "stars": {"automation_for_third": 0.8}
+}
