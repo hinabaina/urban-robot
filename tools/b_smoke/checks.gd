@@ -145,7 +145,7 @@ func _wet(plot: Vector2i) -> bool:
 func _building() -> void:
 	await press(Actions.slot(4))
 	check("locked slot is not selectable", main.get_node("Player/Build").selected == 0)
-	GameState.unlocked.assign(GameState.player_config["hotbar"])
+	GameState.unlocked.assign(GameConfig.player()["hotbar"])
 	GameState.unlocked_changed.emit()
 	GameState.pockets["ore"] = 10
 	GameState.pockets_changed.emit()

@@ -23,7 +23,7 @@ var _jump_speed := 0.0
 
 
 func _ready() -> void:
-	_cfg = GameState.player_config
+	_cfg = GameConfig.player()
 	_jump_speed = sqrt(2.0 * float(_cfg["gravity"]) * float(_cfg["jump_height_px"]))
 	camera.zoom = Vector2.ONE * float(_cfg["camera_zoom"])
 	Sim.machine_placed.connect(_on_machine_placed)

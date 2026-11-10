@@ -22,7 +22,7 @@ var _last_cell := Vector2i(-999, -999)
 func _ready() -> void:
 	top_level = true          # рисуем призрак в координатах мира, а не игрока
 	z_index = 4
-	slots = GameState.player_config["hotbar"]
+	slots = GameConfig.player()["hotbar"]
 
 
 func selected_id() -> String:
@@ -116,7 +116,7 @@ func _try_place(loud: bool) -> void:
 
 ## Посадить зерно: клик по грядке или по воздуху прямо над ней.
 func _plant() -> void:
-	var cost: Dictionary = GameState.player_config["plant_cost"]
+	var cost: Dictionary = GameConfig.player()["plant_cost"]
 	var cell := TileCatalog.cell_at(get_global_mouse_position())
 	if not player.in_reach(TileCatalog.cell_center(cell)) or not GameState.can_afford(cost):
 		return
@@ -137,7 +137,7 @@ func _draw() -> void:
 	draw_rect(rect, Color(color, 0.9), false, 1.0)
 	var center := rect.get_center()
 	var dir := Vector2(ghost["dir"])
-	var directional: bool = GameState.player_config["directional"].has(type)
+	var directional: bool = GameConfig.player()["directional"].has(type)
 	draw_set_transform(center, dir.angle() if type == "conveyor" else 0.0)
 	draw_texture(Sprites.machine(type), -rect.size * 0.5, Color(color, 0.75))
 	if directional and type != "conveyor":

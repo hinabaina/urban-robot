@@ -24,7 +24,7 @@ var _sim_time := 0.0             # сколько времени отдано с
 
 
 func _ready() -> void:
-	_clock = GameState.config["clock"]
+	_clock = GameConfig.days()["clock"]
 	reset()
 
 

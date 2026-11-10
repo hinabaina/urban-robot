@@ -54,7 +54,7 @@ func _on_placed(cell: Vector2i, type: String, dir: Vector2i) -> void:
 	icon.z_index = 3
 	icon.position = sprite.position - Vector2(0, sprite.texture.get_height() * 0.5 + ICON_GAP)
 	add_child(icon)
-	if GameState.player_config["directional"].has(type) and type != "conveyor":
+	if GameConfig.player()["directional"].has(type) and type != "conveyor":
 		var arrow := Sprite2D.new()
 		arrow.texture = Sprites.tex("arrow_out")
 		arrow.position = Vector2(dir) * (sprite.texture.get_width() * 0.5 - ARROW_INSET)

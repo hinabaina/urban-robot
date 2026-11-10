@@ -8,7 +8,7 @@ const SWAY_PIXELS := 1.0
 var world: Node2D            # WorldLoader, задаёт Main
 
 var _sprites := {}           # клетка грядки -> Sprite2D
-@onready var _ripe := int(GameState.player_config["ripe_stage"])
+@onready var _ripe := int(GameConfig.player()["ripe_stage"])
 
 
 func _ready() -> void:

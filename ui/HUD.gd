@@ -68,7 +68,7 @@ func _build_center(row: HBoxContainer) -> void:
 	_quota_bar.add_child(_quota_text)
 	var hearts := UiKit.hbox(2)
 	row.add_child(hearts)
-	for i in int(GameState.config["start"]["trust"]):
+	for i in int(GameConfig.days()["start"]["trust"]):
 		var heart := UiKit.icon(Sprites.icon("heart"), HEART)
 		hearts.add_child(heart)
 		_hearts.append(heart)
@@ -90,7 +90,7 @@ func _build_right(row: HBoxContainer) -> void:
 	_auto_bar.show_percentage = false
 	_auto_bar.max_value = 1.0
 	auto.add_child(_auto_bar)
-	for value in GameState.config["clock"]["speeds"]:
+	for value in GameConfig.days()["clock"]["speeds"]:
 		var button := UiKit.button("×%d" % int(value), DayCycle.set_user_speed.bind(value))
 		button.toggle_mode = true
 		_speed_buttons[value] = button
@@ -109,7 +109,7 @@ func _spacer(row: HBoxContainer) -> void:
 
 func _process(_delta: float) -> void:
 	_clock.text = DayCycle.clock_text()
-	_day.text = tr("HUD_DAY") % [GameState.day, GameState.total_days()]
+	_day.text = tr("HUD_DAY") % [GameState.day, GameConfig.total_days()]
 	var h := fmod(DayCycle.hour, 24.0)
 	_orb.texture = Sprites.icon("sun" if h >= 6.0 and h < 18.5 else "moon")
 
@@ -131,7 +131,7 @@ func _on_pockets() -> void:
 	for type in _pockets:
 		var count: int = GameState.pockets.get(type, 0)
 		_pockets[type].text = str(count)
-		var full := count >= GameState.pocket_limit(type)
+		var full := count >= GameConfig.pocket_limit(type)
 		_pockets[type].add_theme_color_override("font_color", UiKit.ACCENT if full else UiKit.TEXT)
 
 

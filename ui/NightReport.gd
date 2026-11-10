@@ -25,11 +25,11 @@ func _show(day: int) -> void:
 		var color := UiKit.GOOD if _last_result["ok"] else UiKit.BAD
 		_add(UiKit.label(tr("REPORT_DELIVERED") % [_last_result["taken"], _last_result["quota"]], UiKit.FONT_SIZE, color))
 	_add(UiKit.label(tr("REPORT_AUTOMATION") % int(round(GameState.automation() * 100.0))))
-	var gift: Array = GameState.day_config(day).get("gift", {}).get("unlock", [])
+	var gift: Array = GameConfig.day(day).get("gift", {}).get("unlock", [])
 	if not gift.is_empty():
 		var names := gift.map(func(id: String) -> String: return tr("SLOT_" + id))
 		_add(UiKit.label(tr("REPORT_GIFT") % ", ".join(names), UiKit.FONT_SIZE, UiKit.ACCENT))
-	_add(UiKit.label(tr("REPORT_NEXT_QUOTA") % int(GameState.day_config(day + 1)["quota"])))
+	_add(UiKit.label(tr("REPORT_NEXT_QUOTA") % int(GameConfig.day(day + 1)["quota"])))
 	var button := UiKit.button(tr("REPORT_BUTTON"), _on_morning)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.custom_minimum_size.x = 180

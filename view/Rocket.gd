@@ -15,7 +15,7 @@ var _built := 0
 
 func _ready() -> void:
 	z_index = -4
-	for day in GameState.config["days"]:
+	for day in GameConfig.days()["days"]:
 		_parts.append(day["rocket_part"])
 	GameState.day_settled.connect(func(_result: Dictionary) -> void: _sync(true))
 	_sync(false)

@@ -26,7 +26,7 @@ var _arrow: TextureRect
 func setup(player: CharacterBody2D, world: Node2D) -> void:
 	_player = player
 	_world = world
-	_data = GameState.load_json(PATH)
+	_data = GameConfig.load_json(PATH)
 	UiKit.setup_root(self)
 	var center := CenterContainer.new()     # сам центрирует плашку при любой длине текста
 	center.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)

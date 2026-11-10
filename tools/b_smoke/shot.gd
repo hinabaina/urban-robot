@@ -81,7 +81,7 @@ func press(action: StringName) -> void:
 ## Поставить машину. Для 2x2 курсор целим в общий угол четырёх клеток: cell — правая нижняя из них.
 func place(slot_index: int, cell: Vector2i) -> void:
 	await press(Actions.slot(slot_index))
-	var id: String = GameState.player_config["hotbar"][slot_index]
+	var id: String = GameConfig.player()["hotbar"][slot_index]
 	if MachineCatalog.size(id) == Vector2i.ONE:
 		mouse_to_cell(cell)
 	else:
@@ -93,7 +93,7 @@ func place(slot_index: int, cell: Vector2i) -> void:
 ## Камера под землёй: открыть чертежи, выдать ресурсы, собрать линию бур -> конвейер -> печь -> конвейер.
 func scenario_factory() -> void:
 	var player: CharacterBody2D = main.get_node("Player")
-	GameState.unlocked.assign(GameState.player_config["hotbar"])
+	GameState.unlocked.assign(GameConfig.player()["hotbar"])
 	GameState.unlocked_changed.emit()
 	GameState.pockets = {"ore": 40, "grain": 10, "ingot": 15}
 	GameState.pockets_changed.emit()
@@ -178,7 +178,7 @@ func scenario_menu_settings() -> void:
 func scenario_win() -> void:
 	GameState.day = 5
 	for i in 4:
-		GameState.rocket.append({"part": GameState.config["days"][i]["rocket_part"], "patched": i == 2})
+		GameState.rocket.append({"part": GameConfig.days()["days"][i]["rocket_part"], "patched": i == 2})
 	main.get_node("Rocket")._sync(false)
 	var storage: Vector2i = main.get_node("World").marker_cell("Storage")
 	for i in 50:

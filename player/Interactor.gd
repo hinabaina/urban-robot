@@ -28,7 +28,7 @@ func _target(nearby: bool) -> Dictionary:
 	if not machine.is_empty() and player.in_reach(MachineCatalog.center(machine["type"], machine["cell"])):
 		return machine
 	var best := {}
-	var best_dist := float(GameState.player_config["interact_tiles"]) * TileCatalog.TILE
+	var best_dist := float(GameConfig.player()["interact_tiles"]) * TileCatalog.TILE
 	for m in Sim.get_machines() if nearby else []:
 		var type: String = m.get("type")
 		var dist := player.global_position.distance_to(MachineCatalog.center(type, m.get("cell")))
@@ -47,7 +47,7 @@ func _interact(machine: Dictionary) -> void:
 			_give(cell, "ingot", GameState.pockets["ingot"])
 			_collect(Sim.take(cell), cell)
 		"campfire":
-			var recipe: Dictionary = GameState.player_config["campfire_recipe"]
+			var recipe: Dictionary = GameConfig.player()["campfire_recipe"]
 			if GameState.can_afford(recipe):
 				for type in recipe:
 					_give(cell, type, int(recipe[type]))
@@ -85,14 +85,14 @@ func _collect(items: Array, cell: Vector2i) -> void:
 func _demolish(delta: float) -> void:
 	var machine := _target(false) if Input.is_action_pressed(Actions.DEMOLISH) else {}
 	# Склад и костёр стоят на карте с начала игры: чертежа у них нет, сносить нельзя.
-	if machine.is_empty() or GameState.unlock_day(machine["type"]) < 0:
+	if machine.is_empty() or GameConfig.unlock_day(machine["type"]) < 0:
 		_stop_demolish()
 		return
 	if machine["cell"] != _hold_cell:
 		_hold = 0.0
 		_hold_cell = machine["cell"]
 	_hold += delta
-	var need := float(GameState.player_config["demolish_hold"])
+	var need := float(GameConfig.player()["demolish_hold"])
 	demolish_progress.emit(machine["cell"], machine["type"], minf(_hold / need, 1.0))
 	if _hold < need:
 		return

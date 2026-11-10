@@ -54,7 +54,7 @@ func play(sound: String) -> void:
 func start_music() -> void:
 	if _music.stream and not _music.playing:
 		_music.play()
-	_music.pitch_scale = FINAL_DAY_PITCH if GameState.day >= GameState.total_days() else 1.0
+	_music.pitch_scale = FINAL_DAY_PITCH if GameState.day >= GameConfig.total_days() else 1.0
 
 
 func set_sfx_volume(value: float) -> void:

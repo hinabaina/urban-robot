@@ -17,7 +17,7 @@ var _time := 0.0
 var _warned := ""            # предупреждение уже показано за это нажатие
 
 @onready var player: CharacterBody2D = get_parent()
-@onready var _cfg: Dictionary = GameState.player_config
+@onready var _cfg: Dictionary = GameConfig.player()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -60,7 +60,7 @@ func _pick_action(cell: Vector2i) -> Dictionary:
 			return {}
 		return {"id": "water", "cell": plot, "time": float(_cfg["water_time"]), "done": _water.bind(plot)}
 	if tool == "pickaxe" and Sim.dig_time(cell) > 0.0:
-		if world.kind_at(cell) == "ore" and GameState.pockets["ore"] >= GameState.pocket_limit("ore"):
+		if world.kind_at(cell) == "ore" and GameState.pockets["ore"] >= GameConfig.pocket_limit("ore"):
 			_warn("NOTICE_POCKETS_FULL")
 			return {}
 		return {"id": "dig", "cell": cell, "time": Sim.dig_time(cell), "done": _dig.bind(cell)}
