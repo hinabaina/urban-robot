@@ -21,10 +21,11 @@ func _ready() -> void:
 	world_view.world = world
 	tool_user.world = world
 	tool_user.build = build
-	tool_user.dig_progress.connect(world_view.show_dig)
-	tool_user.dig_stopped.connect(world_view.hide_dig)
-	tool_user.dug.connect(func(cell: Vector2i, ore: bool) -> void: world_view.show_dug(cell, ore, _dug_kind))
-	tool_user.dig_progress.connect(func(cell: Vector2i, _r: float) -> void: _dug_kind = world.kind_at(cell))
+	$CropView.world = world
+	tool_user.progress.connect(world_view.show_progress)
+	tool_user.stopped.connect(world_view.hide_progress)
+	tool_user.dug.connect(world_view.show_dug)
+	tool_user.harvested.connect(world_view.show_harvest)
 	tool_user.campfire_blown.connect(machine_view.light_campfire)
 	interactor.demolish_progress.connect(machine_view.show_demolish)
 	interactor.demolish_stopped.connect(machine_view.clear_demolish)
@@ -36,16 +37,15 @@ func _ready() -> void:
 	DayCycle.phase_changed.connect(_on_phase)
 	DayCycle.day_started.connect(func(_day: int) -> void: _wake_up())
 	world.start_new()
+	$CropView.refresh()
 	$Rocket.position = world.marker_pos("Rocket") + Vector2(TileCatalog.TILE, TileCatalog.TILE) * 0.5
 	drone.hover_point = MachineCatalog.center("storage", world.marker_cell("Storage")) - Vector2(0, drone.HOVER_ABOVE)
 	player.limit_camera(world.world_rect())
 	_wake_up()
+	$UI/Tutorial.setup(player, world)
 	GameState.emit_quota()
 	DayCycle.reset()
 	DayCycle.running = true
-
-
-var _dug_kind := "soil"   # вид тайла, который сейчас копают (к моменту сигнала dug клетка уже пустая)
 
 
 func _unhandled_input(event: InputEvent) -> void:

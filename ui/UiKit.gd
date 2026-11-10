@@ -6,6 +6,7 @@ const ACCENT := Color("ffab45")
 const MUTED := Color("9aa8bd")
 const GOOD := Color("84c95a")
 const BAD := Color("f0705a")
+const WATER := Color("7cc4f2")
 const SHADOW := Color(0.06, 0.05, 0.1, 0.9)
 const FONT_SIZE := 22
 const SMALL_SIZE := 18

@@ -4,7 +4,7 @@ extends Control
 const TOAST_TIME := 1.6
 const BANNER_TIME := 3.5
 const FADE := 0.3
-const TOAST_BOTTOM := 130.0
+const TOAST_BOTTOM := 205.0
 const HINT_TOP := 70.0
 const BANNER_TOP := 120.0
 const CURSOR_OFFSET := Vector2(20, 18)

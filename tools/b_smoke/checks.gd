@@ -30,6 +30,7 @@ func scenario_checks() -> void:
 	await _movement()
 	await _digging()
 	await _hands()
+	await _farming()
 	await _building()
 	await _pause()
 	await _day_end()
@@ -98,6 +99,49 @@ func _hands() -> void:
 		[Sim.storage_count("ingot"), GameState.pockets])
 
 
+func _farming() -> void:
+	var plot := Vector2i(18, 12)
+	await teleport(Vector2i(17, 11))
+	await press(Actions.slot(2))
+	mouse_to_cell(plot + Vector2i.UP)
+	await press(Actions.PLACE)
+	check("plant seed costs 1 grain", GameState.pockets["grain"] == 8 and _stage(plot) == 1, [GameState.pockets, _stage(plot)])
+	await press(Actions.slot(1))
+	await click(Actions.USE, 0.5)
+	check("empty can does not water", not _wet(plot))
+	await teleport(Vector2i(7, 11))
+	mouse_to_cell(Vector2i(6, 11))
+	await click(Actions.USE, 1.2)
+	check("fill can at well", GameState.water == 10, GameState.water)
+	await teleport(Vector2i(17, 11))
+	mouse_to_cell(plot)
+	await click(Actions.USE, 0.45)
+	check("water plot", _wet(plot) and GameState.water == 9, [_wet(plot), GameState.water])
+	for i in 2:   # влажность держится 15 с, рост идёт 30 с: поливаем ещё дважды
+		Sim.advance(14.0)
+		await click(Actions.USE, 0.45)
+	Sim.advance(4.0)
+	check("crop is ripe after 30 s wet", _stage(plot) == 4, _stage(plot))
+	await press(Actions.slot(0))
+	await click(Actions.USE, 0.45)
+	check("harvest gives 3 grain", GameState.pockets["grain"] == 11 and _stage(plot) == 0, [GameState.pockets, _stage(plot)])
+	check("farmland is not diggable", world.kind_at(plot) == "farmland")
+
+
+func _stage(plot: Vector2i) -> int:
+	for crop in Sim.get_crops():
+		if crop["cell"] == plot:
+			return crop["stage"]
+	return -1
+
+
+func _wet(plot: Vector2i) -> bool:
+	for crop in Sim.get_crops():
+		if crop["cell"] == plot:
+			return crop["wet"]
+	return false
+
+
 func _building() -> void:
 	await press(Actions.slot(4))
 	check("locked slot is not selectable", main.get_node("Player/Build").selected == 0)
@@ -145,6 +189,6 @@ func _pause() -> void:
 func _day_end() -> void:
 	GameState.trust = 1
 	DayCycle.hour = 17.95
-	await wait(6.0)
+	await wait(8.0)
 	check("missed quota at last trust -> game over (lost)", DayCycle.phase == DayCycle.Phase.OVER and GameState.trust == 0
 		and main.get_node("UI/EndScreen").visible and player.frozen, [DayCycle.phase, GameState.trust])

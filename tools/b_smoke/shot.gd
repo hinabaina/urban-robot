@@ -128,3 +128,22 @@ func scenario_day() -> void:
 	DayCycle.next_morning()
 	await get_tree().create_timer(0.5).timeout
 	print("phase=", DayCycle.phase, " day=", GameState.day, " unlocked=", GameState.unlocked, " pockets=", GameState.pockets)
+
+
+## Вид фермы: посадить и полить несколько грядок на разных стадиях.
+func scenario_farm() -> void:
+	for x in range(9, 21):
+		Sim.plant(Vector2i(x, 12))
+	for x in range(9, 18):
+		Sim.water(Vector2i(x, 12))
+	Sim.advance(12.0)
+	for x in range(12, 18):
+		Sim.water(Vector2i(x, 12))
+	Sim.advance(10.0)
+	for x in range(15, 18):
+		Sim.water(Vector2i(x, 12))
+	Sim.advance(9.0)
+	main.get_node("Player").global_position = TileCatalog.cell_center(Vector2i(13, 11))
+	GameState.set_water(6)
+	await press(Actions.slot(1))
+	mouse_to_cell(Vector2i(12, 11))

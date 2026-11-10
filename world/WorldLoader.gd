@@ -1,6 +1,8 @@
 # Корень World.tscn: отдаёт карту симуляции и ставит готовые постройки (лестница шахты, склад, костёр). Владелец: B.
 extends Node2D
 
+const NO_CELL := Vector2i(-999, -999)
+
 # Соответствие «вида» тайла числу TileKind симуляции. Единственное место, где B знает эти числа.
 var _sim_kind := {
 	"soil": Sim.Tile.SOIL, "stone": Sim.Tile.STONE, "deep": Sim.Tile.DEEP, "bedrock": Sim.Tile.BEDROCK,
@@ -62,3 +64,21 @@ func apply_tile(cell: Vector2i, sim_kind: int) -> void:
 		ground.erase_cell(cell)
 	else:
 		ground.set_cell(cell, TileCatalog.SOURCE_GROUND, TileCatalog.coords(tile_name, cell))
+
+
+## Клетка грядки под курсором: сама грядка или воздух прямо над ней. Если грядки нет — NO_CELL.
+func plot_at(cell: Vector2i) -> Vector2i:
+	for candidate in [cell, cell + Vector2i.DOWN]:
+		if kind_at(candidate) == "farmland":
+			return candidate
+	return NO_CELL
+
+
+func is_well(cell: Vector2i) -> bool:
+	var sprite: Sprite2D = $Well
+	return Rect2(sprite.position, sprite.texture.get_size()).has_point(TileCatalog.cell_center(cell))
+
+
+## Показать грядку влажной (тёмной) или сухой.
+func set_plot_wet(cell: Vector2i, wet: bool) -> void:
+	ground.set_cell(cell, TileCatalog.SOURCE_GROUND, TileCatalog.coords("farm_wet" if wet else "farm_dry", cell))

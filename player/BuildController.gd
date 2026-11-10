@@ -95,6 +95,7 @@ func _try_place(loud: bool) -> void:
 	_last_cell = ghost["cell"]
 	if ghost["ok"] and Sim.place_machine(ghost["type"], ghost["cell"], ghost["dir"]):
 		GameState.pay(MachineCatalog.cost(ghost["type"]))
+		GameState.report("placed:" + ghost["type"])
 		Audio.play("place")
 	elif loud:
 		GameState.notify(ghost["reason"])

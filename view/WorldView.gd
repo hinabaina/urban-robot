@@ -5,11 +5,16 @@ const CRACK_FRAMES := 3
 const POPUP_RISE := 14.0
 const POPUP_TIME := 0.7
 const DEBRIS_COUNT := 6
+const BAR_SIZE := Vector2(12, 2)
+const BAR_OFFSET := Vector2(-6, -12)
 const DEBRIS_COLOR := {"soil": Color("8a5c3e"), "stone": Color("737885"), "deep": Color("3d4a75"), "ore": Color("e07b24")}
 
 var world: Node2D     # WorldLoader, задаёт Main
 
 var _cracks: Sprite2D
+var _dug_kind := "soil"   # вид тайла, который копают (к моменту сигнала dug клетка уже пустая)
+var _bar_ratio := -1.0
+var _bar_pos := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -22,22 +27,41 @@ func _ready() -> void:
 	Sim.tile_changed.connect(func(cell: Vector2i, kind: int) -> void: world.apply_tile(cell, kind))
 
 
-func show_dig(cell: Vector2i, ratio: float) -> void:
-	_cracks.visible = true
-	_cracks.position = TileCatalog.cell_center(cell)
-	_cracks.frame = mini(int(ratio * CRACK_FRAMES), CRACK_FRAMES - 1)
+## Ход действия с удержанием: трещины для копания, полоска для остального.
+func show_progress(cell: Vector2i, ratio: float, action: String) -> void:
+	_cracks.visible = action == "dig"
+	_bar_ratio = -1.0 if action == "dig" else ratio
+	_bar_pos = TileCatalog.cell_center(cell) + BAR_OFFSET
+	if action == "dig":
+		_dug_kind = world.kind_at(cell)
+		_cracks.position = TileCatalog.cell_center(cell)
+		_cracks.frame = mini(int(ratio * CRACK_FRAMES), CRACK_FRAMES - 1)
+	queue_redraw()
 
 
-func hide_dig() -> void:
+func hide_progress() -> void:
 	_cracks.visible = false
+	_bar_ratio = -1.0
+	queue_redraw()
+
+
+func _draw() -> void:
+	if _bar_ratio < 0.0:
+		return
+	draw_rect(Rect2(_bar_pos - Vector2(1, 1), BAR_SIZE + Vector2(2, 2)), Color("1a1423"))
+	draw_rect(Rect2(_bar_pos, Vector2(BAR_SIZE.x * _bar_ratio, BAR_SIZE.y)), Color("f4d34f"))
 
 
 ## Тайл выкопан или добыта руда: крошки и всплывающая иконка.
-func show_dug(cell: Vector2i, got_ore: bool, kind: String) -> void:
+func show_dug(cell: Vector2i, got_ore: bool) -> void:
 	var pos := TileCatalog.cell_center(cell)
-	_debris(pos, DEBRIS_COLOR.get("ore" if got_ore else kind, DEBRIS_COLOR["soil"]))
+	_debris(pos, DEBRIS_COLOR.get("ore" if got_ore else _dug_kind, DEBRIS_COLOR["soil"]))
 	if got_ore:
 		popup_item(pos, "ore")
+
+
+func show_harvest(plot: Vector2i, _count: int) -> void:
+	popup_item(TileCatalog.cell_center(plot + Vector2i.UP), "grain")
 
 
 func popup_item(pos: Vector2, type: String) -> void:

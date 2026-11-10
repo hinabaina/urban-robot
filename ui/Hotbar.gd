@@ -11,6 +11,7 @@ var _panels: Array[PanelContainer] = []
 var _icons: Array[TextureRect] = []
 var _locks: Array[TextureRect] = []
 var _costs: Array[HBoxContainer] = []
+var _badges: Array[Label] = []     # число в углу слота: вода в лейке
 var _tip: PanelContainer
 var _tip_title: Label
 var _tip_text: Label
@@ -55,6 +56,11 @@ func _make_slot(index: int) -> Control:
 	panel.add_child(key)
 	var lock := UiKit.icon(Sprites.icon("lock"))
 	panel.add_child(lock)
+	var badge := UiKit.label("", UiKit.SMALL_SIZE, UiKit.WATER)
+	badge.size_flags_vertical = Control.SIZE_SHRINK_END
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	panel.add_child(badge)
+	_badges.append(badge)
 	var cost := UiKit.hbox(0)
 	cost.custom_minimum_size = Vector2(SLOT, COST_ICON + 4)
 	column.add_child(cost)
@@ -104,6 +110,7 @@ func _refresh() -> void:
 		_panels[i].add_theme_stylebox_override("panel", _selected if i == _build.selected else _normal)
 		_icons[i].modulate = Color.WHITE if open else LOCKED_TINT
 		_locks[i].visible = not open
+		_badges[i].text = str(GameState.water) if id == "can" else ""
 		_fill_cost(_costs[i], MachineCatalog.cost(id) if open else {})
 
 

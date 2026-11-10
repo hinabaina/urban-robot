@@ -1,21 +1,23 @@
-# ЛКМ (удержание): копать киркой, раздувать костёр. Полив и сбор урожая добавятся в B8. Владелец: B.
+# ЛКМ (удержание): копать, раздувать костёр, набирать воду, поливать, собирать урожай. Владелец: B.
 extends Node
 
-signal dig_progress(cell: Vector2i, ratio: float)
-signal dig_stopped()
+signal progress(cell: Vector2i, ratio: float, action: String)   # идёт действие с удержанием
+signal stopped()
 signal dug(cell: Vector2i, got_ore: bool)
 signal campfire_blown(cell: Vector2i)
-
-const NO_CELL := Vector2i(-999, -999)
+signal harvested(cell: Vector2i, count: int)
+signal watered(cell: Vector2i)
 
 var world: Node2D            # WorldLoader, задаёт Main
 var build: Node              # BuildController: какой инструмент выбран
 
 var _held := false
-var _cell := NO_CELL
+var _key := ""               # действие + клетка, на которых копится время
 var _time := 0.0
+var _warned := ""            # предупреждение уже показано за это нажатие
 
 @onready var player: CharacterBody2D = get_parent()
+@onready var _cfg: Dictionary = GameState.player_config
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -26,57 +28,108 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if not Input.is_action_pressed(Actions.USE):
 		_held = false
+		_warned = ""
 	var mouse := player.get_global_mouse_position()
 	var cell := TileCatalog.cell_at(mouse)
-	var active := false
+	var action := {}
 	if _held and not player.frozen and player.in_reach(TileCatalog.cell_center(cell)):
-		active = _use(cell, delta)
-	if not active and _cell != NO_CELL:
-		_cell = NO_CELL
-		_time = 0.0
-		dig_stopped.emit()
-	var icons: Dictionary = GameState.player_config["tool_icons"]
-	player.set_working(active, mouse, int(icons.get(build.selected_id(), 0)))
+		action = _pick_action(cell)
+	if action.is_empty():
+		if _key != "":
+			_key = ""
+			stopped.emit()
+	else:
+		_run(action, delta)
+	player.set_working(not action.is_empty(), mouse, int(_cfg["tool_icons"].get(build.selected_id(), 0)))
 
 
-func _use(cell: Vector2i, delta: float) -> bool:
+## Что делает ЛКМ по этой клетке: {id, cell, time, done} или пусто. time 0 — действие непрерывное.
+func _pick_action(cell: Vector2i) -> Dictionary:
+	var tool: String = build.selected_id()
 	var machine := MachineCatalog.find(cell)
 	if machine.get("type", "") == "campfire":
-		return _blow_campfire(machine["cell"], delta)
-	if build.selected_id() == "pickaxe":
-		return _dig(cell, delta)
-	return false
+		return {"id": "campfire", "cell": machine["cell"], "time": 0.0, "done": _blow_campfire}
+	var plot: Vector2i = world.plot_at(cell)
+	if plot != world.NO_CELL and _crop_stage(plot) >= int(_cfg["ripe_stage"]):
+		return {"id": "harvest", "cell": plot, "time": float(_cfg["harvest_time"]), "done": _harvest.bind(plot)}
+	if tool == "can" and world.is_well(cell) and GameState.water < int(_cfg["can_capacity"]):
+		return {"id": "fill", "cell": cell, "time": float(_cfg["can_fill_time"]), "done": _fill_can}
+	if tool == "can" and plot != world.NO_CELL:
+		if GameState.water <= 0:
+			_warn("NOTICE_CAN_EMPTY")
+			return {}
+		return {"id": "water", "cell": plot, "time": float(_cfg["water_time"]), "done": _water.bind(plot)}
+	if tool == "pickaxe" and Sim.dig_time(cell) > 0.0:
+		if world.kind_at(cell) == "ore" and GameState.pockets["ore"] >= GameState.pocket_limit("ore"):
+			_warn("NOTICE_POCKETS_FULL")
+			return {}
+		return {"id": "dig", "cell": cell, "time": Sim.dig_time(cell), "done": _dig.bind(cell)}
+	return {}
 
 
-func _blow_campfire(cell: Vector2i, delta: float) -> bool:
+func _warn(key: String) -> void:
+	if _warned != key:
+		_warned = key
+		GameState.notify(key)
+
+
+func _run(action: Dictionary, delta: float) -> void:
+	var key := "%s %s" % [action["id"], action["cell"]]
+	if key != _key:
+		_key = key
+		_time = 0.0
+	if action["time"] <= 0.0:
+		action["done"].call(action["cell"], delta)
+		return
+	_time += delta
+	progress.emit(action["cell"], clampf(_time / action["time"], 0.0, 1.0), action["id"])
+	if _time >= action["time"]:
+		_time = 0.0
+		action["done"].call()
+
+
+func _crop_stage(plot: Vector2i) -> int:
+	for crop in Sim.get_crops():
+		if crop.get("cell") == plot:
+			return int(crop.get("stage"))
+	return 0
+
+
+func _blow_campfire(cell: Vector2i, delta: float) -> void:
 	campfire_blown.emit(cell)
 	if Sim.campfire_work(delta):
 		if GameState.add_pocket("ingot") == 0:
 			GameState.notify("NOTICE_POCKETS_FULL")
+		GameState.report("campfire_ingot")
 		Audio.play("ingot")
-	return true
 
 
-func _dig(cell: Vector2i, delta: float) -> bool:
-	var need := Sim.dig_time(cell)
-	if need <= 0.0:
-		return false
-	var is_ore: bool = world.kind_at(cell) == "ore"
-	if is_ore and GameState.pockets["ore"] >= GameState.pocket_limit("ore"):
-		if _cell != cell:
+func _dig(cell: Vector2i) -> void:
+	var result: Dictionary = Sim.dig(cell)
+	var got_ore: bool = result.get("ore", false)
+	if got_ore:
+		GameState.add_pocket("ore")
+	dug.emit(cell, got_ore)
+	Audio.play("ore" if got_ore else "dig")
+
+
+func _fill_can() -> void:
+	GameState.set_water(int(_cfg["can_capacity"]))
+	Audio.play("water")
+
+
+func _water(plot: Vector2i) -> void:
+	if Sim.water(plot):
+		GameState.set_water(GameState.water - 1)
+		GameState.report("watered")
+		watered.emit(plot)
+		Audio.play("water")
+
+
+func _harvest(plot: Vector2i) -> void:
+	var count := Sim.harvest(plot)
+	if count > 0:
+		if GameState.add_pocket("grain", count) < count:
 			GameState.notify("NOTICE_POCKETS_FULL")
-		_cell = cell
-		return false
-	if cell != _cell:
-		_cell = cell
-		_time = 0.0
-	_time += delta
-	dig_progress.emit(cell, clampf(_time / need, 0.0, 1.0))
-	if _time >= need:
-		_time = 0.0
-		var result: Dictionary = Sim.dig(cell)
-		if result.get("ore", false):
-			GameState.add_pocket("ore")
-		dug.emit(cell, result.get("ore", false))
-		Audio.play("ore" if result.get("ore", false) else "dig")
-	return true
+		harvested.emit(plot, count)
+		Audio.play("harvest")

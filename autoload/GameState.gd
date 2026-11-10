@@ -8,6 +8,7 @@ signal unlocked_changed()
 signal day_settled(result: Dictionary)   # {day, quota, taken, ok, auto, part}
 signal game_over(won: bool)
 signal notice(key: String)             # короткое сообщение игроку (ключ перевода)
+signal happened(event: String)         # игровое событие для обучения: "placed:drill", "campfire_loaded"...
 
 const DAYS_PATH := "res://data/days.json"
 const PLAYER_PATH := "res://data/player.json"
@@ -17,6 +18,7 @@ var player_config: Dictionary = {}
 var day := 1
 var trust := 3
 var pockets := {"ore": 0, "grain": 10, "ingot": 0}
+var water := 0                    # сколько поливов осталось в лейке
 var unlocked: Array[String] = []
 var rocket: Array = []            # по дням: {part: String, patched: bool}
 var delivered_total := 0
@@ -45,6 +47,7 @@ func new_game() -> void:
 	for type in start["pockets"]:
 		pockets[type] = int(start["pockets"][type])
 	unlocked.assign(start["unlocked"])
+	water = 0
 	rocket = []
 	delivered_total = 0
 	delivered_auto = 0
@@ -54,6 +57,15 @@ func new_game() -> void:
 
 func notify(key: String) -> void:
 	notice.emit(key)
+
+
+func report(event: String) -> void:
+	happened.emit(event)
+
+
+func set_water(value: int) -> void:
+	water = value
+	pockets_changed.emit()
 
 
 func total_days() -> int:
@@ -160,7 +172,7 @@ func start_next_day() -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"day": day, "trust": trust, "pockets": pockets.duplicate(), "unlocked": unlocked.duplicate(),
+	return {"day": day, "trust": trust, "pockets": pockets.duplicate(), "water": water, "unlocked": unlocked.duplicate(),
 		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto}
 
 
@@ -171,6 +183,7 @@ func from_dict(d: Dictionary) -> void:
 	for type in d["pockets"]:
 		pockets[type] = int(d["pockets"][type])
 	unlocked.assign(d["unlocked"])
+	water = int(d.get("water", 0))
 	rocket = d["rocket"].duplicate(true)
 	delivered_total = int(d["delivered_total"])
 	delivered_auto = int(d["delivered_auto"])

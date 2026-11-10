@@ -51,6 +51,7 @@ func _interact(machine: Dictionary) -> void:
 			if GameState.can_afford(recipe):
 				for type in recipe:
 					_give(cell, type, int(recipe[type]))
+				GameState.report("campfire_loaded")
 			else:
 				GameState.notify("NOTICE_CAMPFIRE_NEED")
 		"furnace":
