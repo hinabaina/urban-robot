@@ -68,8 +68,14 @@ func quota() -> int:
 	return int(day_config()["quota"])
 
 
+## Квота для табло: после визита дрона склад уже копит на завтрашнюю.
+func display_quota() -> int:
+	var settled_today := rocket.size() >= day
+	return int(day_config(day + 1 if settled_today else day)["quota"])
+
+
 func emit_quota() -> void:
-	quota_changed.emit(Sim.storage_count("ingot"), quota())
+	quota_changed.emit(Sim.storage_count("ingot"), display_quota())
 
 
 func pocket_limit(type: String) -> int:

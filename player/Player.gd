@@ -2,6 +2,7 @@
 extends CharacterBody2D
 
 const HALF_HEIGHT := 10.0   # половина высоты фигуры столкновений (Shape в Player.tscn)
+const PERCH_LIFT := 0.5
 const FRAMES := {"idle": [0, 1], "walk": [2, 3, 4, 5], "jump": [6], "climb": [7, 8]}
 
 var frozen := false          # игрок спит или идёт заставка
@@ -80,7 +81,8 @@ func _physics_process(delta: float) -> void:
 		velocity.y = Input.get_axis(Actions.UP, Actions.DOWN) * float(_cfg["climb_speed"])
 		side *= float(_cfg["ladder_side_factor"])
 	elif not is_nan(perch) and velocity.y >= 0.0:
-		global_position.y = perch - HALF_HEIGHT   # верх лестницы держит как пол
+		# Верх лестницы держит как пол. Стоим на волосок выше земли, чтобы не цепляться за край соседнего тайла.
+		global_position.y = perch - HALF_HEIGHT - PERCH_LIFT
 		velocity.y = 0.0
 		supported = true
 	else:

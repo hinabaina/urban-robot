@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bd5bjkbgs7ca8"
-path="res://.godot/imported/Handjet.ttf-2e236e0864a76b1f26ab645b3b5acfa0.fontdata"
+uid="uid://bta6vwia3o7td"
+path="res://.godot/imported/Tektur.ttf-2182261d3f391105bc5aab1ac020733d.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/Handjet.ttf"
-dest_files=["res://.godot/imported/Handjet.ttf-2e236e0864a76b1f26ab645b3b5acfa0.fontdata"]
+source_file="res://assets/fonts/Tektur.ttf"
+dest_files=["res://.godot/imported/Tektur.ttf-2182261d3f391105bc5aab1ac020733d.fontdata"]
 
 [params]
 

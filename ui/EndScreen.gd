@@ -27,6 +27,7 @@ func _on_phase(phase: int) -> void:
 	_add(UiKit.label(tr("END_WIN_TEXT" if _won else "END_LOSE_TEXT")))
 	_add(UiKit.label(tr("END_STATS") % [GameState.delivered_total, int(round(GameState.automation() * 100.0))]))
 	var button := UiKit.button(tr("END_RESTART"), func() -> void: restart_pressed.emit())
+	button.custom_minimum_size.x = 220
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_list.add_child(button)
 	visible = true

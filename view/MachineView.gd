@@ -8,6 +8,7 @@ const EXHAUSTED_TINT := Color(0.5, 0.5, 0.55)
 const BLOCKED_TINT := Color(1.0, 0.45, 0.4)
 const CAMPFIRE_GLOW_TIME := 0.25
 const ICON_GAP := 7.0
+const ARROW_INSET := 4.0         # стрелка выхода сидит на краю машины, внутри её контура
 
 var _nodes := {}      # клетка-якорь -> {type, sprite, icon, state}
 var _time := 0.0
@@ -56,7 +57,7 @@ func _on_placed(cell: Vector2i, type: String, dir: Vector2i) -> void:
 	if GameState.player_config["directional"].has(type) and type != "conveyor":
 		var arrow := Sprite2D.new()
 		arrow.texture = Sprites.tex("arrow_out")
-		arrow.position = Vector2(dir) * (sprite.texture.get_width() * 0.5 + 3.0)
+		arrow.position = Vector2(dir) * (sprite.texture.get_width() * 0.5 - ARROW_INSET)
 		arrow.rotation = Vector2(dir).angle()
 		arrow.modulate.a = 0.85
 		sprite.add_child(arrow)

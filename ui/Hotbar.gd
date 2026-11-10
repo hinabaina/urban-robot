@@ -1,7 +1,7 @@
 # Нижняя панель: 9 слотов с картинкой, клавишей и ценой; замок на закрытых; подсказка под курсором. Владелец: B.
 extends Control
 
-const SLOT := 60
+const SLOT := 62
 const COST_ICON := 16
 const LOCKED_TINT := Color(0.35, 0.37, 0.45)
 const EDGE := 8
@@ -21,11 +21,14 @@ var _selected := UiKit.box("ui_slot_selected", 4)
 func setup(build: Node) -> void:
 	_build = build
 	UiKit.setup_root(self)
-	var row := UiKit.hbox(4)
-	row.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, EDGE)
-	row.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	row.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	add_child(row)
+	var back := PanelContainer.new()
+	back.add_theme_stylebox_override("panel", UiKit.box("ui_panel", 6))
+	back.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, EDGE)
+	back.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	back.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	add_child(back)
+	var row := UiKit.hbox(6)
+	back.add_child(row)
 	for i in _build.slots.size():
 		row.add_child(_make_slot(i))
 	_make_tip()
@@ -52,8 +55,8 @@ func _make_slot(index: int) -> Control:
 	panel.add_child(key)
 	var lock := UiKit.icon(Sprites.icon("lock"))
 	panel.add_child(lock)
-	var cost := UiKit.hbox(2)
-	cost.custom_minimum_size.y = COST_ICON + 6
+	var cost := UiKit.hbox(0)
+	cost.custom_minimum_size = Vector2(SLOT, COST_ICON + 4)
 	column.add_child(cost)
 	_panels.append(panel)
 	_icons.append(icon)
@@ -109,5 +112,6 @@ func _fill_cost(row: HBoxContainer, cost: Dictionary) -> void:
 		child.queue_free()
 	for type in cost:
 		var enough: bool = GameState.pockets.get(type, 0) >= int(cost[type])
-		row.add_child(UiKit.label(str(int(cost[type])), UiKit.SMALL_SIZE, UiKit.TEXT if enough else UiKit.BAD))
+		var count := UiKit.label(" %d" % int(cost[type]), UiKit.SMALL_SIZE, UiKit.TEXT if enough else UiKit.BAD)
+		row.add_child(count)
 		row.add_child(UiKit.icon(Sprites.item(type), COST_ICON))

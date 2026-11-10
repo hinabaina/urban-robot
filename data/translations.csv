@@ -8,7 +8,7 @@ HINT_EVENING,"Вечер. Можно достроить фабрику или л
 HINT_NIGHT,Ночь. Ты спишь — фабрика работает,
 HINT_DRONE,Дрон забирает слитки со склада,
 BANNER_QUOTA_OK,Квота сдана: %d / %d,
-BANNER_QUOTA_FAIL,Недостача: %d / %d. Доверие −1,
+BANNER_QUOTA_FAIL,Недостача: %d / %d. Доверие -1,
 NOTICE_POCKETS_FULL,Карманы полны,
 NOTICE_LOCKED,Этот чертёж ещё не привезли,
 NOTICE_CAMPFIRE_NEED,Костру нужно 2 руды и 1 зерно,

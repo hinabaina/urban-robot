@@ -6,6 +6,7 @@ signal selection_changed(index: int)
 const DIRS: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
 const OK_COLOR := Color(0.45, 1.0, 0.45)
 const BAD_COLOR := Color(1.0, 0.35, 0.3)
+const ARROW_INSET := 4.0
 
 var slots: Array = []
 var selected := 0
@@ -128,6 +129,6 @@ func _draw() -> void:
 	draw_texture(Sprites.machine(type), -rect.size * 0.5, Color(color, 0.75))
 	if directional and type != "conveyor":
 		var arrow := Sprites.tex("arrow_out")
-		draw_set_transform(center + dir * (rect.size.x * 0.5 + 3.0), dir.angle())
+		draw_set_transform(center + dir * (rect.size.x * 0.5 - ARROW_INSET), dir.angle())
 		draw_texture(arrow, -arrow.get_size() * 0.5, Color(1, 1, 1, 0.95))
 	draw_set_transform(Vector2.ZERO)

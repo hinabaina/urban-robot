@@ -7,8 +7,10 @@ const MUTED := Color("9aa8bd")
 const GOOD := Color("84c95a")
 const BAD := Color("f0705a")
 const SHADOW := Color(0.06, 0.05, 0.1, 0.9)
-const FONT_SIZE := 26
-const SMALL_SIZE := 21
+const FONT_SIZE := 22
+const SMALL_SIZE := 18
+const FONT_WEIGHT := 600
+const FONT_WIDTH := 82
 const TITLE_SIZE := 16
 const BOX_MARGIN := 8          # поля 9-patch (в текстуре 4 px, увеличено вдвое)
 const ICON := 32
@@ -21,8 +23,9 @@ static var _title_font: Font
 static func font() -> Font:
 	if _font == null:
 		var variation := FontVariation.new()
-		variation.base_font = load("res://assets/fonts/Handjet.ttf")
-		variation.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 600}
+		variation.base_font = load("res://assets/fonts/Tektur.ttf")
+		var server := TextServerManager.get_primary_interface()
+		variation.variation_opentype = {server.name_to_tag("wght"): FONT_WEIGHT, server.name_to_tag("wdth"): FONT_WIDTH}
 		_font = variation
 	return _font
 
@@ -53,8 +56,8 @@ static func theme() -> Theme:
 	t.set_constant("shadow_offset_y", "Label", 2)
 	t.set_stylebox("panel", "PanelContainer", box("ui_panel"))
 	t.set_stylebox("normal", "Button", box("ui_button", 8))
-	t.set_stylebox("hover", "Button", box("ui_button_hover", 8))
-	t.set_stylebox("pressed", "Button", box("ui_button_pressed", 8))
+	t.set_stylebox("hover", "Button", box("ui_button", 8))
+	t.set_stylebox("pressed", "Button", box("ui_button_hover", 8))   # нажатая/включённая — с яркой рамкой
 	t.set_stylebox("disabled", "Button", box("ui_button_pressed", 8))
 	t.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 	t.set_color("font_color", "Button", TEXT)
