@@ -1,0 +1,14 @@
+# Godot 4
+.godot/
+*.translation
+export_credentials.cfg
+
+# Agent working notes (each participant keeps their own)
+.work/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
