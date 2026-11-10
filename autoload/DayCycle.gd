@@ -107,6 +107,7 @@ func _process(delta: float) -> void:
 		Phase.EVENING:
 			_advance_clock(sim_dt, _clock["sleep_hour"])
 			if hour >= _clock["sleep_hour"]:
+				GameState.notify("NOTICE_AUTO_SLEEP")   # 22:00 — засыпаешь там, где стоишь
 				sleep()
 		Phase.NIGHT:
 			var morning: float = 24.0 + float(_clock["day_start_hour"])

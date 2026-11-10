@@ -29,6 +29,9 @@ func _show(day: int) -> void:
 	if not gift.is_empty():
 		var names := gift.map(func(id: String) -> String: return tr("SLOT_" + id))
 		_add(UiKit.label(tr("REPORT_GIFT") % ", ".join(names), UiKit.FONT_SIZE, UiKit.ACCENT))
+	var fact: String = GameConfig.day(day).get("fact", "")
+	if fact != "":
+		_add(UiKit.label(tr("REPORT_FACT") % tr(fact), UiKit.SMALL_SIZE, UiKit.MUTED))
 	_add(UiKit.label(tr("REPORT_NEXT_QUOTA") % int(GameConfig.day(day + 1)["quota"])))
 	var button := UiKit.button(tr("REPORT_BUTTON"), _on_morning)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

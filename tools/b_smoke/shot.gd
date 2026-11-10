@@ -193,3 +193,8 @@ func scenario_win() -> void:
 func scenario_xray() -> void:
 	await scenario_factory()
 	await press(Actions.XRAY)
+
+
+func scenario_menu_kk() -> void:
+	Loc.setup("kk")
+	main.get_node("UI/MainMenu").open()
