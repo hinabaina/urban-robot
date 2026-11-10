@@ -6,7 +6,14 @@ const PATH := "res://data/translations.csv"
 const DEFAULT_LOCALE := "ru"
 
 
+static var _loaded := false
+
+
 static func setup(locale: String = DEFAULT_LOCALE) -> void:
+	TranslationServer.set_locale(locale)
+	if _loaded:
+		return
+	_loaded = true
 	var file := FileAccess.open(PATH, FileAccess.READ)
 	assert(file != null, "нет файла переводов")
 	var header := file.get_csv_line()
@@ -24,4 +31,3 @@ static func setup(locale: String = DEFAULT_LOCALE) -> void:
 			translations[i].add_message(row[0], text)
 	for translation in translations:
 		TranslationServer.add_translation(translation)
-	TranslationServer.set_locale(locale)

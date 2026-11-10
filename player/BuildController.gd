@@ -44,12 +44,23 @@ func select(index: int) -> void:
 	Audio.play("select")
 
 
+## Колесо мыши: следующий или предыдущий открытый слот.
+func _cycle(step: int) -> void:
+	for i in range(1, slots.size()):
+		var index := posmod(selected + step * i, slots.size())
+		if GameState.is_unlocked(slots[index]):
+			select(index)
+			return
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if player.frozen:
 		return
 	for i in slots.size():
 		if event.is_action_pressed(Actions.slot(i)):
 			select(i)
+	if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		_cycle(-1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 	if event.is_action_pressed(Actions.ROTATE):
 		dir_index = (dir_index + 1) % DIRS.size()
 		Audio.play("select")
@@ -90,6 +101,7 @@ func _try_place(loud: bool) -> void:
 	if selected_id() == "seed":
 		_plant()
 		return
+	_update_ghost()   # клик мог прийти раньше, чем _process успел пересчитать призрак
 	if ghost.is_empty():
 		return
 	_last_cell = ghost["cell"]

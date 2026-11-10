@@ -135,6 +135,15 @@ func automation() -> float:
 	return float(delivered_auto) / float(delivered_total) if delivered_total > 0 else 0.0
 
 
+## Звёзды итога: запуск, ни одной потери доверия, автоматизация выше порога из days.json.
+func stars() -> int:
+	if trust <= 0 or rocket.size() < total_days():
+		return 0
+	var clean := trust >= int(config["start"]["trust"])
+	var automated := automation() >= float(config["stars"]["automation_for_third"])
+	return 1 + int(clean) + int(automated)
+
+
 ## Дрон забирает квоту (вызывает DayCycle в момент погрузки).
 func settle_day() -> Dictionary:
 	var need := quota()

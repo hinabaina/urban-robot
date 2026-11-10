@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://main/Main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/World.tscn" id="2"]
@@ -17,6 +17,10 @@
 [ext_resource type="Script" path="res://ui/PauseMenu.gd" id="15"]
 [ext_resource type="Script" path="res://view/CropView.gd" id="16"]
 [ext_resource type="Script" path="res://ui/Tutorial.gd" id="17"]
+[ext_resource type="Script" path="res://ui/MainMenu.gd" id="18"]
+[ext_resource type="Script" path="res://ui/SettingsPanel.gd" id="19"]
+[ext_resource type="Script" path="res://ui/InfoPage.gd" id="20"]
+[ext_resource type="Script" path="res://view/XRay.gd" id="21"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
@@ -37,6 +41,9 @@ script = ExtResource("16")
 
 [node name="ItemSprites" type="Node2D" parent="."]
 script = ExtResource("7")
+
+[node name="XRay" type="Node2D" parent="."]
+script = ExtResource("21")
 
 [node name="Rocket" type="Node2D" parent="."]
 script = ExtResource("8")
@@ -68,3 +75,12 @@ script = ExtResource("14")
 
 [node name="PauseMenu" type="Control" parent="UI"]
 script = ExtResource("15")
+
+[node name="MainMenu" type="Control" parent="UI"]
+script = ExtResource("18")
+
+[node name="SettingsPanel" type="Control" parent="UI"]
+script = ExtResource("19")
+
+[node name="InfoPage" type="Control" parent="UI"]
+script = ExtResource("20")

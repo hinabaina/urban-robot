@@ -9,6 +9,11 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "shot.png"
 	var wait := float(args[1]) if args.size() > 1 else 1.0
+	get_tree().create_timer(100.0).timeout.connect(func() -> void:
+		print("WATCHDOG: сценарий не завершился")
+		get_tree().quit(1))
+	var scenario: String = args[2] if args.size() > 2 else ""
+	load("res://main/Main.gd").skip_menu = not scenario.begins_with("menu")
 	main = load("res://main/Main.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(main)
 	await get_tree().create_timer(0.3).timeout
@@ -27,7 +32,10 @@ func hold(action: StringName, seconds: float) -> void:
 
 
 func mouse_to_cell(cell: Vector2i) -> void:
-	var world_pos := TileCatalog.cell_center(cell)
+	mouse_to_world(TileCatalog.cell_center(cell))
+
+
+func mouse_to_world(world_pos: Vector2) -> void:
 	var screen: Vector2 = main.get_viewport().get_canvas_transform() * world_pos
 	Input.warp_mouse(screen)
 	var motion := InputEventMouseMotion.new()
@@ -70,9 +78,14 @@ func press(action: StringName) -> void:
 	await click(action, 0.05)
 
 
+## Поставить машину. Для 2x2 курсор целим в общий угол четырёх клеток: cell — правая нижняя из них.
 func place(slot_index: int, cell: Vector2i) -> void:
 	await press(Actions.slot(slot_index))
-	mouse_to_cell(cell)
+	var id: String = GameState.player_config["hotbar"][slot_index]
+	if MachineCatalog.size(id) == Vector2i.ONE:
+		mouse_to_cell(cell)
+	else:
+		mouse_to_world(Vector2(cell) * TileCatalog.TILE)
 	await get_tree().process_frame
 	await press(Actions.PLACE)
 
@@ -147,3 +160,36 @@ func scenario_farm() -> void:
 	GameState.set_water(6)
 	await press(Actions.slot(1))
 	mouse_to_cell(Vector2i(12, 11))
+
+
+func scenario_menu() -> void:
+	pass
+
+
+func scenario_menu_howto() -> void:
+	main.get_node("UI/InfoPage").open("howto")
+
+
+func scenario_menu_settings() -> void:
+	main.get_node("UI/SettingsPanel").open()
+
+
+## Победа: последний день, квота на складе, дрон, взлёт, итог со звёздами.
+func scenario_win() -> void:
+	GameState.day = 5
+	for i in 4:
+		GameState.rocket.append({"part": GameState.config["days"][i]["rocket_part"], "patched": i == 2})
+	main.get_node("Rocket")._sync(false)
+	var storage: Vector2i = main.get_node("World").marker_cell("Storage")
+	for i in 50:
+		Sim.insert(storage, "ingot")
+	DayCycle.hour = 17.95
+	await get_tree().create_timer(8.2).timeout
+	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/win_launch.png")
+	await get_tree().create_timer(5.5).timeout
+	print("stars=", GameState.stars(), " phase=", DayCycle.phase)
+
+
+func scenario_xray() -> void:
+	await scenario_factory()
+	await press(Actions.XRAY)
