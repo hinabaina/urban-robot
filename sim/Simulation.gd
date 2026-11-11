@@ -126,6 +126,20 @@ func campfire_work(dt: float) -> bool:
 			return machine.work(dt)
 	return false
 
+## Костёр загружен полным набором сырья и ждёт, пока его раздуют.
+func campfire_loaded() -> bool:
+	for machine in grid.machines():
+		if machine is Campfire and machine.has_recipe():
+			return true
+	return false
+
+## Доля готовности слитка в костре 0..1.
+func campfire_progress() -> float:
+	for machine in grid.machines():
+		if machine is Campfire and machine.has_recipe():
+			return machine.progress()
+	return 0.0
+
 func plant(cell: Vector2i) -> bool:
 	return farm.plant(cell)
 

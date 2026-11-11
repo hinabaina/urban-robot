@@ -46,6 +46,8 @@ Sim.dig(cell) -> Dictionary                     # {"removed": bool, "ore": bool}
 Sim.insert(cell, item_type) -> bool             # E: 1 предмет из карманов в машину
 Sim.take(cell) -> Array                         # E: забрать предметы из машины
 Sim.campfire_work(dt) -> bool                   # true в тот вызов, когда слиток готов
+Sim.campfire_loaded() -> bool                   # в костре лежит полный набор сырья
+Sim.campfire_progress() -> float                # 0..1, сколько осталось раздувать
 
 Sim.plant(cell) -> bool
 Sim.water(cell) -> bool
