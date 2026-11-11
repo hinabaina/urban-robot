@@ -199,7 +199,7 @@ B может строить игру поверх этого с первого �
 
 ## 8. Ввод (уже в project.godot)
 
-`move_left` (A, ←), `move_right` (D, →), `jump` (Пробел), `climb_up` (W, ↑), `climb_down` (S, ↓), `use_tool` (ЛКМ), `place` (ПКМ), `rotate` (Q), `interact` (E), `demolish` (F), `xray` (X), `sleep` (Z), `pause` (Esc), `slot_1` … `slot_9` (1–9).
+`move_left` (A, ←), `move_right` (D, →), `jump` (Пробел), `climb_up` (W, ↑), `climb_down` (S, ↓), `use` (ЛКМ), `place` (ПКМ), `rotate` (Q), `interact` (E), `demolish` (F), `xray` (X), `sleep` (Z), `pause` (Esc), `slot_1` … `slot_9` (1–9).
 
 Клавиши заданы физическими кодами, поэтому работают при русской раскладке.
 

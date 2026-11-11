@@ -1,0 +1,10 @@
+{
+  "ladder":    {"size": [1, 1], "cost": {}, "unlock_day": 1},
+  "conveyor":  {"size": [1, 1], "cost": {"ore": 1}, "unlock_day": 2},
+  "drill":     {"size": [2, 2], "cost": {"ingot": 3, "ore": 5}, "unlock_day": 2},
+  "furnace":   {"size": [2, 2], "cost": {"ore": 8, "ingot": 2}, "unlock_day": 2},
+  "sprinkler": {"size": [1, 1], "cost": {"ingot": 2}, "unlock_day": 3},
+  "harvester": {"size": [1, 1], "cost": {"ingot": 3, "grain": 3}, "unlock_day": 3},
+  "storage":   {"size": [2, 2], "cost": {}, "unlock_day": 0},
+  "campfire":  {"size": [1, 1], "cost": {}, "unlock_day": 0}
+}
