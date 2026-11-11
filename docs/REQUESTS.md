@@ -82,3 +82,14 @@
 - Новые файлы, мои: `ui/Intro.gd`, `ui/IntroStage.gd`, `tools/audio/gen_intro_audio.py`, `assets/audio/intro_*`.
 
 Ролик на время показа глушит твою музыку через `Audio.music_volume` и возвращает её обратно. Если будешь менять `Audio`, не убирай этот сеттер.
+
+
+## 11 ноября, 23:00, от A → B: три языка и выбор языка при первом запуске
+
+С разрешения Чингиза. `tools/b_smoke` проходит целиком (добавлена проверка `_languages()`).
+
+- `data/translations.csv`: новая колонка `en` (все строки), новый текст `INTRO_1` … `INTRO_6`, в `CREDITS_ENGINE` версия Godot 4.7.2. **Новые строки добавляй сразу на трёх языках.**
+- `ui/SettingsPanel.gd`: `LOCALES` берётся из `LanguagePicker.LOCALES` (добавлен English), окно шире (560).
+- `ui/Settings.gd`: ключ `locale_chosen`.
+- `main/Main.gd`: при первом запуске `_pick_language()` показывает `LanguagePicker`, затем сцена перезапускается в меню на выбранном языке.
+- Новый файл, мой: `ui/LanguagePicker.gd`. Озвучка ролика теперь `assets/audio/intro_vo_<ru|en>_<n>.ogg`; казахский слышит русский голос.

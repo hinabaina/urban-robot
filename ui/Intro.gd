@@ -9,6 +9,7 @@ signal finished()
 const VIEW_SIZE := Vector2i(320, 180)
 const AUDIO := "res://assets/audio/"
 const LINES := 7
+const VOICE_LANGUAGES := ["ru", "en"]                          # есть запись голоса: intro_vo_<язык>_<n>.ogg
 const MIN_SECONDS := [4.0, 5.0, 4.0, 4.5, 4.0, 5.0, 3.0]   # сцена не короче этого; обычно длину задаёт голос
 const PAD_SECONDS := 0.4                                      # пауза после реплики до следующей сцены
 const VOICE_DELAY := 0.35                                     # реплика начинается чуть позже картинки
@@ -235,8 +236,15 @@ func _build_audio() -> void:
 	for player in [_voice, _wind, _drone, _music]:
 		add_child(player)
 	_voice.volume_db = 2.0
+	var lang := voice_language(TranslationServer.get_locale())
 	for i in LINES:
-		_voices.append(_load(AUDIO + "intro_vo_%d.ogg" % (i + 1)))
+		_voices.append(_load(AUDIO + "intro_vo_%s_%d.ogg" % [lang, i + 1]))
+
+
+## Язык озвучки для языка интерфейса. Казахской записи нет: казахский слышит русский голос с казахскими субтитрами.
+static func voice_language(locale: String) -> String:
+	var lang := locale.substr(0, 2)
+	return lang if lang in VOICE_LANGUAGES else "ru"
 
 
 func _build_timeline() -> void:

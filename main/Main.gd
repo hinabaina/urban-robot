@@ -62,6 +62,8 @@ func _ready() -> void:
 	player.frozen = true
 	if skip_menu:
 		_start_playing()
+	elif not Settings.get_value("locale_chosen"):
+		_pick_language()
 	else:
 		menu.open()
 
@@ -77,6 +79,16 @@ func _connect_menus() -> void:
 	pause_menu.menu_pressed.connect(restart.bind(true))
 	settings_panel.locale_changed.connect(restart.bind(true))
 	$UI/EndScreen.restart_pressed.connect(restart.bind(false))
+
+
+## Самый первый запуск: выбор языка, потом меню на этом языке.
+func _pick_language() -> void:
+	var picker := LanguagePicker.new()
+	picker.chosen.connect(func(code: String) -> void:
+		Settings.set_value("locale", code)
+		Settings.set_value("locale_chosen", true)
+		restart(true))
+	$UI.add_child(picker)
 
 
 func _open_settings(allow_locale: bool) -> void:
