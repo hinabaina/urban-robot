@@ -37,6 +37,14 @@ static func day(number: int) -> Dictionary:
 	return days()["days"][clampi(number, 1, total_days()) - 1]
 
 
+## Сколько слитков нужно сдать за всю игру.
+static func total_quota() -> int:
+	var total := 0
+	for d in days()["days"]:
+		total += int(d["quota"])
+	return total
+
+
 static func pocket_limit(type: String) -> int:
 	return int(player()["pocket_limits"].get(type, 0))
 

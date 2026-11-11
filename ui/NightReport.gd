@@ -31,10 +31,14 @@ func _show(day: int) -> void:
 		var color := UiKit.GOOD if _last_result["ok"] else UiKit.BAD
 		_add(UiKit.label(tr("REPORT_DELIVERED") % [_last_result["taken"], _last_result["quota"]], UiKit.FONT_SIZE, color))
 	_add(UiKit.label(tr("REPORT_AUTOMATION") % int(round(GameState.automation() * 100.0))))
-	var gift: Array = GameConfig.day(day).get("gift", {}).get("unlock", [])
-	if not gift.is_empty():
-		var names := gift.map(func(id: String) -> String: return tr("SLOT_" + id))
+	var gift: Dictionary = GameConfig.day(day).get("gift", {})
+	var unlock: Array = gift.get("unlock", [])
+	if not unlock.is_empty():
+		var names := unlock.map(func(id: String) -> String: return tr("SLOT_" + id))
 		_add(UiKit.label(tr("REPORT_GIFT") % ", ".join(names), UiKit.FONT_SIZE, UiKit.ACCENT))
+	var ingots := int(gift.get("pockets", {}).get("ingot", 0))
+	if ingots > 0:
+		_add(UiKit.label(tr("REPORT_GIFT_INGOTS") % ingots, UiKit.FONT_SIZE, UiKit.ACCENT))
 	var fact: String = GameConfig.day(day).get("fact", "")
 	if fact != "":
 		_add(UiKit.label(tr("REPORT_FACT") % tr(fact), UiKit.SMALL_SIZE, UiKit.MUTED))

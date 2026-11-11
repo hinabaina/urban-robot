@@ -27,7 +27,7 @@ func open(page: String) -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list.add_child(title)
 	for key in PAGES[page]["lines"]:
-		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE + 2)
+		var line := UiKit.label(_text(key), UiKit.SMALL_SIZE + 2)
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		list.add_child(line)
 	var back := UiKit.button(tr("BTN_BACK"), close)
@@ -35,6 +35,16 @@ func open(page: String) -> void:
 	back.custom_minimum_size.x = 180
 	list.add_child(back)
 	visible = true
+
+
+## Числа в «Как играть» берутся из days.json, чтобы текст не расходился с балансом.
+func _text(key: String) -> String:
+	match key:
+		"HOWTO_GOAL":
+			return tr(key) % [GameConfig.total_days(), GameConfig.total_quota()]
+		"HOWTO_AUTOMATION":
+			return tr(key) % int(GameConfig.day(GameConfig.total_days())["quota"])
+	return tr(key)
 
 
 func close() -> void:
