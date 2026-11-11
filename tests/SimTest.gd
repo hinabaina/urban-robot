@@ -28,6 +28,7 @@ func _ready() -> void:
 	# Сцену карты можно добавить в дерево только после того, как дерево закончит свой _ready.
 	await get_tree().process_frame
 	TestRealMap.new().run(t, get_tree())
+	TestCampaign.new().run(t, get_tree())
 	get_tree().quit(t.summary())
 
 
