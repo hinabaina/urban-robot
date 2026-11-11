@@ -64,8 +64,24 @@ def sweep(f0, f1, sec, **kw):
     return np.sin(phase) * env(sec, **kw)
 
 
-def save(name, x, gain=0.8):
+FADE_IN = 0.002     # короткие склейки по краям: без них звук начинается и кончается щелчком
+FADE_OUT = 0.012
+
+
+def fade(x, fade_in=FADE_IN, fade_out=FADE_OUT):
+    x = x.copy()
+    a, b = int(SR * fade_in), int(SR * fade_out)
+    if a > 0:
+        x[:a] *= np.linspace(0.0, 1.0, a)
+    if b > 0:
+        x[-b:] *= np.linspace(1.0, 0.0, b)
+    return x
+
+
+def save(name, x, gain=0.8, fade_out=FADE_OUT, loop=False):
     os.makedirs(OUT, exist_ok=True)
+    if not loop:
+        x = fade(x, fade_out=fade_out)
     x = x / (np.max(np.abs(x)) + 1e-9) * gain
     data = (x * 32767).astype(np.int16)
     with wave.open(os.path.join(OUT, name + ".wav"), "wb") as f:
@@ -90,7 +106,7 @@ def effects():
     save("dig", mix(lowpass(noise(0.09, decay=40), 0.25), sine(95, 0.09, decay=35)), 0.7)
     save("ore", mix(sine(1320, 0.25, decay=14), pad(sine(1980, 0.25, decay=16), 0.05) * 0.7), 0.55)
     save("place", mix(square(180, 0.05, decay=60) * 0.6, lowpass(noise(0.04, decay=70), 0.5), pad(sine(520, 0.06, decay=40), 0.03)), 0.6)
-    save("error", lowpass(square(110, 0.16, decay=9), 0.35), 0.5)
+    save("error", lowpass(square(110, 0.16, decay=9), 0.35), 0.3)   # частый звук: тише остальных
     save("select", sine(880, 0.04, decay=60), 0.35)
     save("interact", mix(sine(440, 0.07, decay=30), pad(sine(660, 0.08, decay=30), 0.04)), 0.45)
     save("ingot", mix(sine(1047, 0.5, decay=7), sine(2094, 0.5, decay=10) * 0.4, sine(1568, 0.5, decay=8) * 0.5), 0.5)
@@ -111,7 +127,7 @@ def effects():
     launch = 6.0
     rise = (t(launch) / launch) ** 1.5
     rumble = lowpass(rng.uniform(-1, 1, int(SR * launch)), 0.06) * rise
-    save("rocket", mix(rumble * 1.4, sweep(40, 160, launch, decay=0.0) * rise * 0.5), 0.9)
+    save("rocket", mix(rumble * 1.4, sweep(40, 160, launch, decay=0.0) * rise * 0.5), 0.9, fade_out=0.8)
 
 
 # Ля-минорная пентатоника: спокойная степная мелодия на «домбре» с басом.
@@ -141,7 +157,12 @@ def music(bpm=96):
     loop = track[: int(SR * total)].copy()
     tail = track[int(SR * total):]
     loop[: len(tail)] += tail        # хвост последних нот заворачиваем в начало: петля без щелчка
-    save("music_steppe", lowpass(loop, 0.55), 0.6)
+    loop = lowpass(loop, 0.55)
+    # Фильтр «разгоняется» с нуля, поэтому первые и последние отсчёты сводим друг к другу плавно.
+    seam = int(SR * 0.03)
+    blend = np.linspace(0.0, 1.0, seam)
+    loop[-seam:] = loop[-seam:] * (1.0 - blend) + loop[:seam] * blend
+    save("music_steppe", loop[:-seam], 0.6, loop=True)
     wav = os.path.join(OUT, "music_steppe.wav")
     ogg = os.path.join(OUT, "music_steppe.ogg")
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis", "-q:a", "3", ogg], check=True)
