@@ -1,0 +1,63 @@
+{
+  "walk_speed": 120.0,
+  "climb_speed": 90.0,
+  "ladder_side_factor": 0.6,
+  "gravity": 1000.0,
+  "max_fall_speed": 420.0,
+  "jump_height_px": 52.0,
+  "coyote_time": 0.1,
+  "jump_buffer": 0.12,
+  "reach_tiles": 4.0,
+  "interact_tiles": 2.5,
+  "demolish_hold": 0.5,
+  "camera_zoom": 2.0,
+  "pocket_limits": {
+    "ore": 50,
+    "grain": 30,
+    "ingot": 20
+  },
+  "campfire_recipe": {
+    "ore": 2,
+    "grain": 1
+  },
+  "plant_cost": {
+    "grain": 1
+  },
+  "anim_fps": {
+    "idle": 2.0,
+    "walk": 10.0,
+    "climb": 6.0
+  },
+  "hotbar": [
+    "pickaxe",
+    "can",
+    "seed",
+    "ladder",
+    "conveyor",
+    "drill",
+    "furnace",
+    "sprinkler",
+    "harvester"
+  ],
+  "tools": [
+    "pickaxe",
+    "can",
+    "seed"
+  ],
+  "directional": [
+    "conveyor",
+    "drill",
+    "furnace",
+    "harvester"
+  ],
+  "tool_icons": {
+    "pickaxe": 0,
+    "can": 1,
+    "seed": 2
+  },
+  "can_capacity": 10,
+  "can_fill_time": 1.0,
+  "water_time": 0.3,
+  "harvest_time": 0.3,
+  "ripe_stage": 4
+}
