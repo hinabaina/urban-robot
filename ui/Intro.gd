@@ -1,6 +1,6 @@
 # Вступительный ролик перед первой игрой: картинка (IntroStage), голос рассказчика, субтитры, звук. Владелец: A.
 # Длина каждой сцены подстраивается под длину своей реплики, поэтому голос и картинка не расходятся.
-# Пропуск: кнопка, Esc, Пробел, Enter или клик. По окончании шлёт finished и исчезает сам.
+# Пропуск: кнопка, Esc, Пробел, Enter или клик. В конце затемнение, finished (в темноте) и плавное проявление игры.
 class_name Intro
 extends Control
 
@@ -15,7 +15,10 @@ const PAD_SECONDS := 0.4                                      # пауза по�
 const VOICE_DELAY := 0.35                                     # реплика начинается чуть позже картинки
 const LIGHTNING := [0.42, 0.58, 0.74]                         # доли сцены бури с молниями
 const QUOTA := 120
-const FADE := 0.6
+const FADE := 0.6                                             # проявление из темноты в начале
+const OUT_DARKEN := 0.8                                       # в конце: затемнение,
+const OUT_HOLD := 0.3                                         # пауза в темноте,
+const OUT_REVEAL := 1.2                                       # проявление игры
 const SUB_SIZE := 28
 const COUNTER_SIZE := 30
 
@@ -42,7 +45,7 @@ var _music_volume := 1.0          # громкость музыки игрока
 
 func _ready() -> void:
 	UiKit.setup_root(self)
-	_music_volume = Audio.music_volume
+	_music_volume = float(Settings.get_value("music"))   # не Audio.music_volume: меню могло уже приглушить музыку
 	Audio.music_volume = 0.0
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -51,7 +54,7 @@ func _ready() -> void:
 	_build_audio()
 	_build_timeline()
 	_black.color.a = 1.0
-	create_tween().tween_property(_black, "color:a", 0.0, FADE)
+	create_tween().tween_property(_black, "color:a", 0.0, FADE).set_trans(Tween.TRANS_SINE)
 
 
 ## Полная длина ролика в секундах.
@@ -91,17 +94,20 @@ func skip() -> void:
 	if _done:
 		return
 	_done = true
-	Audio.music_volume = _music_volume
 	for player in [_voice, _wind, _drone, _music]:
-		create_tween().tween_property(player, "volume_db", -60.0, FADE)
+		create_tween().tween_property(player, "volume_db", -60.0, OUT_DARKEN)
+	# Затемнение, короткая пауза в темноте, потом игра плавно проявляется, а её музыка плавно нарастает.
 	var tween := create_tween()
-	tween.tween_property(_black, "color:a", 1.0, FADE * 0.6)
+	tween.tween_property(_black, "color:a", 1.0, OUT_DARKEN)
 	tween.tween_callback(func() -> void:
 		_stage.get_parent().get_parent().visible = false
 		for label in [_subtitle, _counter, _days, _title]:
 			label.visible = false
-		finished.emit())
-	tween.tween_property(self, "modulate:a", 0.0, FADE)
+		finished.emit()
+		Audio.music_volume = 0.0
+		get_tree().create_tween().tween_property(Audio, "music_volume", _music_volume, OUT_HOLD + OUT_REVEAL + 0.5))
+	tween.tween_interval(OUT_HOLD)
+	tween.tween_property(self, "modulate:a", 0.0, OUT_REVEAL).set_trans(Tween.TRANS_SINE)
 	tween.tween_callback(queue_free)
 
 

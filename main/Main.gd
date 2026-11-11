@@ -3,6 +3,7 @@ extends Node2D
 
 const LAUNCH_CAMERA_TIME := 1.0
 const LAUNCH_CAMERA_RISE := 60.0
+const INTRO_FADE := 0.6          # меню уходит в темноту перед роликом
 
 static var skip_menu := false    # после «Начать сначала» меню не показываем
 
@@ -106,12 +107,24 @@ func _on_new_game() -> void:
 
 ## Показать ролик поверх мира; after вызывается, когда экран уже тёмный.
 func _play_intro(after: Callable) -> void:
+	# Меню плавно уходит в темноту вместе с музыкой, ролик начинается из той же темноты.
+	var black := ColorRect.new()
+	black.color = Color(0, 0, 0, 0)
+	black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	black.mouse_filter = Control.MOUSE_FILTER_STOP
+	$UI.add_child(black)
+	get_tree().create_tween().tween_property(Audio, "music_volume", 0.0, INTRO_FADE)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 1.0, INTRO_FADE).set_trans(Tween.TRANS_SINE)
+	await tween.finished
 	menu.visible = false
 	var intro: Control = Intro.new()
 	intro.finished.connect(func() -> void:
 		Settings.set_value("intro_seen", true)
 		after.call())
 	$UI.add_child(intro)
+	# Убираем шторку не сразу: в первом кадре ролик ещё не нарисован, и сквозь него мелькнул бы HUD.
+	get_tree().create_timer(0.2).timeout.connect(black.queue_free)
 
 
 func _start_playing() -> void:

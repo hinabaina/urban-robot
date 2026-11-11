@@ -249,7 +249,7 @@ func _intro() -> void:
 	esc.keycode = KEY_ESCAPE
 	esc.pressed = true
 	Input.parse_input_event(esc)
-	await wait(1.6)
+	await wait(2.8)
 	check("intro: Esc skips and emits finished", done[0])
 	check("intro: removed after skip", not is_instance_valid(intro))
 	check("intro: game music volume restored", Audio.music_volume > 0.0, Audio.music_volume)
@@ -278,5 +278,5 @@ func _languages() -> void:
 		intro._subtitle.text)
 	check("languages: English intro 25-70 s", intro.length() > 25.0 and intro.length() < 70.0, intro.length())
 	intro.skip()
-	await wait(1.6)
+	await wait(2.8)
 	TranslationServer.set_locale("ru")
