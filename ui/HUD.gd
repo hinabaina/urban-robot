@@ -37,6 +37,7 @@ func _ready() -> void:
 	GameState.trust_changed.connect(_on_trust)
 	GameState.pockets_changed.connect(_on_pockets)
 	GameState.day_settled.connect(func(_r: Dictionary) -> void: _on_automation())
+	GameState.restored.connect(_on_automation)
 	DayCycle.speed_changed.connect(func(_s: float) -> void: _on_speed())
 	_on_quota(Sim.storage_count("ingot"), GameState.display_quota())
 	_on_trust(GameState.trust)

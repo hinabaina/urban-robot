@@ -1,4 +1,4 @@
-# Автопроверки части B на заглушке Sim (в билд не входит). Запуск: tools/b_smoke/shot.sh out.png 0.2 checks
+# Автопроверки части B на настоящем движке (в билд не входит). Запуск: tools/b_smoke/shot.sh out.png 0.2 checks
 extends "res://tools/b_smoke/shot.gd"
 
 var failed := 0
@@ -14,6 +14,14 @@ func check(name: String, ok: bool, info = "") -> void:
 
 func wait(seconds: float) -> void:
 	await get_tree().create_timer(seconds).timeout
+
+
+## Ждать фазу дня не дольше limit секунд.
+func wait_phase(phase: int, limit: float) -> void:
+	var left := limit
+	while DayCycle.phase != phase and left > 0.0:
+		await wait(0.1)
+		left -= 0.1
 
 
 func teleport(cell: Vector2i) -> void:
@@ -34,6 +42,9 @@ func scenario_checks() -> void:
 	await _building()
 	await _pause()
 	await _day_end()
+	for part in [_save, _tutorial]:   # каждая часть начинает с чистой партии
+		await relaunch(false)
+		await part.call()
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
 
 
@@ -196,6 +207,11 @@ func _day_end() -> void:
 
 ## Обучение дня 1 настоящим вводом от первого шага до последнего.
 func scenario_tutorial() -> void:
+	await _tutorial()
+	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+func _tutorial() -> void:
 	player = main.get_node("Player")
 	world = main.get_node("World")
 	var tutorial: Control = main.get_node("UI/Tutorial")
@@ -228,4 +244,64 @@ func scenario_tutorial() -> void:
 	check("clock is slowed during tutorial", is_equal_approx(DayCycle.clock_scale, 0.5))
 	await wait(8.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
+
+
+## Сохранение: утро после отчёта пишется на диск, «Продолжить» возвращает это утро целиком.
+func scenario_save() -> void:
+	await _save()
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+func _save() -> void:
+	player = main.get_node("Player")
+	world = main.get_node("World")
+	check("new game saves day 1 morning", SaveManager.has_save() and int(SaveManager.read()["game"]["day"]) == 1)
+	GameState.unlocked.assign(GameConfig.player()["hotbar"])
+	GameState.pockets = {"ore": 30, "grain": 12, "ingot": 4}
+	GameState.pockets_changed.emit()
+	for x in range(44, 48):
+		Sim.place_machine("conveyor", Vector2i(x, 10), Vector2i.RIGHT)
+	Sim.dig(Vector2i(20, 14))
+	var storage: Vector2i = world.marker_cell("Storage")
+	for i in 7:
+		Sim.insert(storage, "ingot")
+	DayCycle.hour = 17.95
+	await wait_phase(DayCycle.Phase.EVENING, 10.0)
+	DayCycle.sleep()
+	await wait_phase(DayCycle.Phase.REPORT, 10.0)
+	check("night ends with report", DayCycle.phase == DayCycle.Phase.REPORT, DayCycle.phase)
+	main.get_node("UI/NightReport")._on_morning()
+	await wait(0.2)
+	var saved: Dictionary = SaveManager.read()
+	check("morning of day 2 saved", int(saved.get("game", {}).get("day", 0)) == 2, saved.get("game", {}).get("day"))
+	var expect := _snapshot()
+	Sim.place_machine("conveyor", Vector2i(48, 10), Vector2i.RIGHT)
+	Sim.dig(Vector2i(21, 14))
+	GameState.pockets["ore"] = 1
+	GameState.day = 4
+	await relaunch(true)
+	player = main.get_node("Player")
+	world = main.get_node("World")
+	var got := _snapshot()
+	for key in expect:
+		check("restored " + key, JSON.stringify(expect[key], "", true) == JSON.stringify(got[key], "", true), [expect[key], got[key]])
+	check("rocket view shows saved parts", main.get_node("Rocket")._built == 1, main.get_node("Rocket")._built)
+	check("tile view matches sim after load", world.kind_at(Vector2i(20, 14)) == "" and world.kind_at(Vector2i(21, 14)) == "soil")
+	check("day starts at 06:00 after load", DayCycle.phase == DayCycle.Phase.DAY and DayCycle.clock_text() == "06:00")
+	FileAccess.open("user://save.json", FileAccess.WRITE).store_string("{broken")
+	await relaunch(true)
+	check("broken save starts a new game", GameState.day == 1 and Sim.storage_count("ingot") == 0)
+	GameState.trust = 1
+	DayCycle.hour = 17.95
+	await wait(8.0)
+	var end: Control = main.get_node("UI/EndScreen")
+	var texts: Array = end.find_children("*", "Button", true, false).map(func(b: Button) -> String: return b.text)
+	check("lose screen offers retry day", texts.has(tr("END_RETRY")), texts)
+
+
+func _snapshot() -> Dictionary:
+	var machines := Sim.get_machines().map(func(m: Variant) -> String: return "%s%s" % [m.get("type"), m.get("cell")])
+	machines.sort()
+	return {"day": GameState.day, "trust": GameState.trust, "pockets": GameState.pockets.duplicate(), "unlocked": GameState.unlocked.duplicate(),
+		"rocket": GameState.rocket.duplicate(true), "delivered": GameState.delivered_total, "storage": Sim.storage_count("ingot"),
+		"machines": machines, "dug": Sim.get_tile(Vector2i(20, 14)), "undug": Sim.get_tile(Vector2i(21, 14))}

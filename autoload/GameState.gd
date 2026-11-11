@@ -9,6 +9,7 @@ signal day_settled(result: Dictionary)   # {day, quota, taken, ok, auto, part}
 signal game_over(won: bool)
 signal notice(key: String)               # короткое сообщение игроку (ключ перевода)
 signal happened(event: String)           # событие для обучения: "placed:drill", "campfire_loaded"...
+signal restored()                        # состояние целиком заменено (новая игра или загрузка утра)
 
 var day := 1
 var trust := 3
@@ -151,6 +152,7 @@ func from_dict(d: Dictionary) -> void:
 	delivered_auto = int(d.get("delivered_auto", 0))
 	finished = false
 	_emit_all()
+	restored.emit()
 
 
 func _emit_all() -> void:

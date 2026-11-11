@@ -18,6 +18,7 @@ func _ready() -> void:
 	for day in GameConfig.days()["days"]:
 		_parts.append(day["rocket_part"])
 	GameState.day_settled.connect(func(_result: Dictionary) -> void: _sync(true))
+	GameState.restored.connect(_sync.bind(false))
 	_sync(false)
 
 

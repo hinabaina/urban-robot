@@ -2,6 +2,7 @@
 extends Control
 
 signal restart_pressed()
+signal retry_pressed()
 
 const STAR := 48
 const STAR_KEYS := ["END_STARS_1", "END_STARS_2", "END_STARS_3"]
@@ -25,11 +26,18 @@ func open(won: bool) -> void:
 	_add(list, UiKit.label(tr("END_STATS") % [GameState.delivered_total, int(round(GameState.automation() * 100.0))]))
 	if won and Settings.submit_record(GameState.stars(), GameState.automation()):
 		_add(list, UiKit.label(tr("END_RECORD"), UiKit.FONT_SIZE, UiKit.ACCENT))
-	var button := UiKit.button(tr("END_RESTART"), func() -> void: restart_pressed.emit())
-	button.custom_minimum_size.x = 220
-	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	list.add_child(button)
+	var buttons := UiKit.hbox(16)
+	list.add_child(buttons)
+	if not won and SaveManager.has_save():   # мягкое поражение: переиграть только этот день
+		_button(buttons, "END_RETRY", func() -> void: retry_pressed.emit())
+	_button(buttons, "END_RESTART", func() -> void: restart_pressed.emit())
 	visible = true
+
+
+func _button(row: HBoxContainer, key: String, on_press: Callable) -> void:
+	var button := UiKit.button(tr(key), on_press)
+	button.custom_minimum_size.x = 220
+	row.add_child(button)
 
 
 ## Три звезды с подписями: полученные — золотые, остальные — тёмные.

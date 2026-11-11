@@ -8,6 +8,7 @@ signal page_pressed(page: String)
 
 const TITLE_SIZE := 44
 const BUTTON_WIDTH := 300
+const MENU_GAP := 9
 const STORY := ["MENU_STORY_1", "MENU_STORY_2", "MENU_STORY_3"]
 
 var can_continue := false    # Main включает, если есть сохранение
@@ -23,6 +24,7 @@ func open() -> void:
 		child.queue_free()
 	add_child(UiKit.dim(0.55))
 	var list := UiKit.window(self, 640)
+	list.add_theme_constant_override("separation", MENU_GAP)   # шесть кнопок и два языка должны влезть в 720 px
 	var title := UiKit.title("DALA WORKS", TITLE_SIZE, UiKit.ACCENT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list.add_child(title)

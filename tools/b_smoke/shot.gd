@@ -9,7 +9,7 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "shot.png"
 	var wait := float(args[1]) if args.size() > 1 else 1.0
-	get_tree().create_timer(100.0).timeout.connect(func() -> void:
+	get_tree().create_timer(170.0).timeout.connect(func() -> void:
 		print("WATCHDOG: сценарий не завершился")
 		get_tree().quit(1))
 	var scenario: String = args[2] if args.size() > 2 else ""
@@ -198,3 +198,18 @@ func scenario_xray() -> void:
 func scenario_menu_kk() -> void:
 	Loc.setup("kk")
 	main.get_node("UI/MainMenu").open()
+
+
+## Повторить то, что делает Main.restart(), но без reload_current_scene (иначе перезапустится сам тест).
+func relaunch(load_save: bool) -> void:
+	var script: GDScript = load("res://main/Main.gd")
+	script.skip_menu = true
+	script.load_on_start = load_save
+	get_tree().paused = false
+	DayCycle.running = false
+	GameState.new_game()
+	main.queue_free()
+	await get_tree().process_frame
+	main = load("res://main/Main.tscn").instantiate()
+	get_tree().root.add_child(main)
+	await get_tree().create_timer(0.3).timeout
