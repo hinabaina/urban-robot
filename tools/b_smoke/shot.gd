@@ -9,7 +9,8 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "shot.png"
 	var wait := float(args[1]) if args.size() > 1 else 1.0
-	get_tree().create_timer(170.0).timeout.connect(func() -> void:
+	var limit := 900.0 if args.size() > 2 and args[2] == "play" else 170.0
+	get_tree().create_timer(limit, true, false, true).timeout.connect(func() -> void:
 		print("WATCHDOG: сценарий не завершился")
 		get_tree().quit(1))
 	var scenario: String = args[2] if args.size() > 2 else ""
