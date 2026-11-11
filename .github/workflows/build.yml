@@ -1,0 +1,72 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+  GODOT_RELEASE: 4.7.2-stable
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot and export templates
+        run: |
+          base=https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}
+          curl -fsSL -o godot.zip ${base}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip
+          unzip -q godot.zip -d "$RUNNER_TEMP/godot"
+          sudo ln -s "$RUNNER_TEMP/godot/Godot_v${GODOT_RELEASE}_linux.x86_64" /usr/local/bin/godot
+          curl -fsSL -o templates.tpz ${base}/Godot_v${GODOT_RELEASE}_export_templates.tpz
+          dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dir"
+          unzip -q -j templates.tpz 'templates/web_nothreads_*' 'templates/windows_*_x86_64*' templates/version.txt -d "$dir"
+          rm godot.zip templates.tpz
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb zip
+          godot --version
+
+      - name: Import assets
+        run: godot --headless --path . --import || true
+
+      - name: Engine tests
+        run: godot --headless --path . res://tests/SimTest.tscn
+
+      - name: Game smoke checks
+        run: |
+          tools/b_smoke/shot.sh "$RUNNER_TEMP/smoke.png" 0.2 checks | tee "$RUNNER_TEMP/smoke.log"
+          grep -q "RESULT: ALL PASS" "$RUNNER_TEMP/smoke.log"
+
+      - name: Build Web and Windows
+        run: |
+          build/build.sh all
+          cp build/dala-works-win64.zip build/web/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
