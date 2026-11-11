@@ -240,6 +240,8 @@ func _keep_fed() -> void:
 
 ## Подбросить в печь зерно и руду из карманов (E), забрать готовые слитки.
 func _feed(furnace: Vector2i) -> void:
+	if MachineCatalog.find(furnace).get("type", "") != "furnace":
+		return
 	_last_feed = DayCycle.hour
 	await _walk(furnace + Vector2i.LEFT)
 	for item in Sim.take(furnace):

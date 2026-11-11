@@ -3,6 +3,8 @@ extends Node
 ## Запуск: godot --headless --path . res://tests/SimTest.tscn
 ## Код возврата 0, если все проверки прошли.
 
+## Сколько слитков игрок успевает сделать руками за сутки (GDD «Баланс: ручной труд»).
+const HAND_INGOTS_PER_DAY := 10
 const CONTRACT_METHODS := [
 	"load_world", "advance", "tick", "tick_alpha", "can_place", "place_machine", "remove_machine",
 	"dig_time", "dig", "insert", "take", "campfire_work", "plant", "water", "harvest",
@@ -56,7 +58,15 @@ func _data(t: TestCase) -> void:
 	t.equal(Sim.data.vein_reserve(14), 40, "жила в почве: 40 руды")
 	t.equal(Sim.data.vein_reserve(25), 120, "жила в камне: 120 руды")
 	t.equal(Sim.data.vein_reserve(33), -1, "глубокая жила бесконечна")
-	var total := 0
-	for day in GameConfig.days()["days"]:
-		total += int(day["quota"])
-	t.equal(total, 120, "сумма квот за 5 дней")
+	# Сами квоты — баланс B (data/days.json, подобраны ботом tools/b_smoke/play.gd). Здесь проверяем свойства,
+	# на которых держится игра: квоты растут, с дня 3 руками не успеть (GDD: ~10 слитков в сутки),
+	# а квота дня 5 не выше того, что фабрика гарантированно даёт (TestCampaign.QUOTA_DAY_5).
+	var quotas: Array = GameConfig.days()["days"].map(func(day: Dictionary) -> int: return int(day["quota"]))
+	t.equal(quotas.size(), 5, "5 игровых дней")
+	var growing := true
+	for i in range(1, quotas.size()):
+		growing = growing and quotas[i] > quotas[i - 1]
+	t.check(growing, "квоты растут каждый день: %s" % [quotas])
+	t.check(quotas.slice(2).all(func(q: int) -> bool: return q > HAND_INGOTS_PER_DAY),
+		"с дня 3 квота больше ручного потолка %d слитков" % HAND_INGOTS_PER_DAY)
+	t.check(quotas[-1] <= TestCampaign.QUOTA_DAY_5, "квота дня 5 (%d) не выше проверенной мощности фабрики" % quotas[-1])
