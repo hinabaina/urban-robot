@@ -1,0 +1,8 @@
+# Одинаковые окончания строк на Windows и Linux, чтобы не было ложных диффов.
+* text=auto eol=lf
+*.png binary
+*.ogg binary
+*.wav binary
+*.ttf binary
+*.otf binary
+*.pdf binary

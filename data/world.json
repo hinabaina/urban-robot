@@ -1,0 +1,30 @@
+{
+	"tick_seconds": 0.25,
+	"size": [64, 40],
+	"tile_px": 16,
+	"surface_y": 12,
+	"tiles": {
+		"soil": {"rows": [12, 18], "dig_time": 0.4, "vein_reserve": 40},
+		"stone": {"rows": [19, 28], "dig_time": 0.9, "vein_reserve": 120},
+		"deep": {"rows": [29, 37], "dig_time": 1.6, "vein_reserve": -1},
+		"bedrock": {"rows": [38, 39], "dig_time": -1},
+		"ore": {"dig_time": 1.2}
+	},
+	"well": {
+		"radius": 10,
+		"fill_seconds": 1.0,
+		"can_uses": 10
+	},
+	"farm": {
+		"start_plots": 12,
+		"max_plots": 24,
+		"grow_seconds": 30.0,
+		"stage_seconds": 10.0,
+		"wet_seconds": 15.0,
+		"yield": 3,
+		"water_seconds": 0.3,
+		"harvest_seconds": 0.3
+	},
+	"stats_window_seconds": 30.0,
+	"stuck_item_seconds": 3.0
+}

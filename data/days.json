@@ -1,0 +1,32 @@
+{
+	"time": {
+		"seconds_per_hour": 10.0,
+		"day_start_hour": 6,
+		"drone_hour": 18,
+		"auto_sleep_hour": 22,
+		"speeds": [1, 2],
+		"night_speed": 20,
+		"tutorial_time_scale": 0.5
+	},
+	"trust": 3,
+	"xray_unlock_day": 2,
+	"player": {
+		"start_pockets": {"ore": 0, "grain": 10, "ingot": 0},
+		"pocket_limits": {"ore": 50, "grain": 30, "ingot": 20},
+		"reach_tiles": 4,
+		"walk_speed_px": 120,
+		"jump_tiles": 3,
+		"demolish_hold_seconds": 0.5,
+		"dropped_item_seconds": 30.0
+	},
+	"days": [
+		{"day": 1, "quota": 5, "rocket_part": "base", "gift": {"ingot": 5}},
+		{"day": 2, "quota": 10, "rocket_part": "engine"},
+		{"day": 3, "quota": 20, "rocket_part": "tank"},
+		{"day": 4, "quota": 35, "rocket_part": "hull", "event": "dust_storm", "event_hours": [12, 14]},
+		{"day": 5, "quota": 50, "rocket_part": "satellite", "countdown_from_hour": 16}
+	],
+	"stars": {
+		"automation_percent": 80
+	}
+}
