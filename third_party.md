@@ -6,7 +6,7 @@
 
 | Компонент | Версия | Автор | Лицензия |
 |---|---|---|---|
-| Godot Engine | 4.4.1-stable | Juan Linietsky, Ariel Manzur и участники проекта Godot | MIT |
+| Godot Engine | 4.7.2-stable | Juan Linietsky, Ariel Manzur и участники проекта Godot | MIT |
 
 ## Шрифты
 
