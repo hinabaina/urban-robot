@@ -15,7 +15,6 @@
   },
   "clock": {
     "seconds_per_hour": 10.0,
-    "sim_tick": 0.25,
     "day_start_hour": 6.0,
     "drone_hour": 18.0,
     "sleep_hour": 22.0,

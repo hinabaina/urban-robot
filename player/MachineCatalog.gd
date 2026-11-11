@@ -1,18 +1,22 @@
 # Чтение data/machines.json (файл A): цена и размер машин, поиск машины по клетке. Владелец: B.
 class_name MachineCatalog
 
-const PATHS := ["res://data/machines.json", "res://dev_stub/machines.json"]
+const PATH := "res://data/machines.json"
+const WORLD_PATH := "res://data/world.json"
 
 static var _data: Dictionary = {}
 
 
 static func data() -> Dictionary:
 	if _data.is_empty():
-		for path in PATHS:
-			if FileAccess.file_exists(path):
-				_data = JSON.parse_string(FileAccess.open(path, FileAccess.READ).get_as_text())
-				break
+		_data = GameConfig.load_json(PATH)
 	return _data
+
+
+## Сколько клеток конвейера предмет проезжает за один тик симуляции (для сглаживания отрисовки).
+static func conveyor_cells_per_tick() -> float:
+	var tick := float(GameConfig.load_json(WORLD_PATH)["tick_seconds"])
+	return tick / float(data()["conveyor"]["cell_seconds"])
 
 
 static func is_machine(id: String) -> bool:

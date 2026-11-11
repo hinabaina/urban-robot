@@ -20,7 +20,6 @@ var running := false             # Main включает после загруз
 var _clock: Dictionary = {}
 var _user_speed := 1.0
 var _settled := false
-var _sim_time := 0.0             # сколько времени отдано симуляции (для сглаживания отрисовки)
 
 
 func _ready() -> void:
@@ -70,15 +69,6 @@ func clock_text() -> String:
 	return "%02d:%02d" % [int(h), int(fmod(h, 1.0) * 6.0) * 10]
 
 
-func tick_step() -> float:
-	return float(_clock["sim_tick"])
-
-
-## Доля текущего тика симуляции 0..1 (тики идут каждые sim_tick секунд времени симуляции).
-func tick_alpha() -> float:
-	return fmod(_sim_time, tick_step()) / tick_step()
-
-
 func is_night() -> bool:
 	return phase == Phase.NIGHT
 
@@ -88,7 +78,6 @@ func _process(delta: float) -> void:
 		return
 	var sim_dt := delta * speed
 	Sim.advance(sim_dt)
-	_sim_time += sim_dt
 	match phase:
 		Phase.DAY:
 			_advance_clock(sim_dt, _clock["drone_hour"])
