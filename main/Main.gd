@@ -67,7 +67,8 @@ func _ready() -> void:
 
 
 func _connect_menus() -> void:
-	menu.new_game_pressed.connect(_start_playing)
+	menu.new_game_pressed.connect(_on_new_game)
+	menu.intro_pressed.connect(_play_intro.bind(menu.open))
 	menu.settings_pressed.connect(func() -> void: _open_settings(true))
 	menu.page_pressed.connect(info_page.open)
 	pause_menu.settings_pressed.connect(func() -> void: _open_settings(false))
@@ -81,6 +82,24 @@ func _connect_menus() -> void:
 func _open_settings(allow_locale: bool) -> void:
 	settings_panel.allow_locale = allow_locale
 	settings_panel.open()
+
+
+## «Новая игра»: в первый раз сначала вступительный ролик, потом игра.
+func _on_new_game() -> void:
+	if Settings.get_value("intro_seen"):
+		_start_playing()
+	else:
+		_play_intro(_start_playing)
+
+
+## Показать ролик поверх мира; after вызывается, когда экран уже тёмный.
+func _play_intro(after: Callable) -> void:
+	menu.visible = false
+	var intro: Control = Intro.new()
+	intro.finished.connect(func() -> void:
+		Settings.set_value("intro_seen", true)
+		after.call())
+	$UI.add_child(intro)
 
 
 func _start_playing() -> void:
