@@ -43,36 +43,28 @@
       "fact": "FACT_1"
     },
     {
-      "quota": 8,
+      "quota": 10,
       "rocket_part": "engine",
       "gift": {
         "unlock": [
           "sprinkler",
           "harvester"
-        ],
-        "pockets": {
-          "ingot": 6
-        }
+        ]
       },
       "fact": "FACT_2"
     },
     {
-      "quota": 12,
+      "quota": 20,
       "rocket_part": "tank",
-      "fact": "FACT_3",
-      "gift": {
-        "pockets": {
-          "ingot": 5
-        }
-      }
+      "fact": "FACT_3"
     },
     {
-      "quota": 25,
+      "quota": 35,
       "rocket_part": "hull",
       "fact": "FACT_4"
     },
     {
-      "quota": 40,
+      "quota": 50,
       "rocket_part": "nose"
     }
   ],
