@@ -189,16 +189,25 @@ func _draw_quota() -> void:
 			draw_texture_rect_region(tiles, Rect2(x * TILE, y * TILE, TILE, TILE), Rect2(cell * TILE, Vector2(TILE, TILE)))
 	var hero := Vector2(150, 112)
 	var swing := sin(u * 9.0)
+	var hit := fposmod(u * 9.0 / TAU, 1.0)
+	# Рудная глыба прямо перед героем: кирка бьёт в неё, при ударе она вздрагивает.
+	var jolt := Vector2(1, 0) if hit < 0.12 else Vector2.ZERO
+	for x in 2:
+		for y in 2:
+			var cell := Vector2i((x + y) % 2, 2)
+			draw_texture_rect_region(tiles, Rect2(hero + Vector2(12 + x * TILE, -32 + y * TILE) + jolt, Vector2(TILE, TILE)),
+				Rect2(cell * TILE, Vector2(TILE, TILE)))
 	_person(hero, 0, false, Color.WHITE)
 	draw_set_transform(hero + Vector2(10, -12), -0.6 + swing * 0.9, Vector2.ONE)
 	draw_texture_rect_region(_t("icons"), Rect2(-4, -14, 16, 16), Rect2(0, 0, 16, 16))
 	draw_set_transform(Vector2.ZERO)
-	# Осколки руды при каждом ударе.
-	var hit := fposmod(u * 9.0 / TAU, 1.0)
+	# Искра и осколки руды отлетают от глыбы к герою при каждом ударе.
+	if hit < 0.1:
+		draw_circle(hero + Vector2(13, -14), 3.0, Color("fff3a8"))
 	if hit < 0.35:
 		for k in 5:
-			var v := Vector2(cos(k * 1.3) * 22.0, -18.0 - k * 4.0) * hit * 3.0
-			draw_rect(Rect2(hero + Vector2(22, -2) + v + Vector2(0, 40.0 * hit * hit), Vector2(2, 2)), Color("e07b24"))
+			var v := Vector2(-8.0 - k * 4.0, -16.0 - (k % 3) * 6.0) * hit * 3.0
+			draw_rect(Rect2(hero + Vector2(13, -14) + v + Vector2(0, 50.0 * hit * hit), Vector2(2, 2)), Color("e07b24"))
 	# Капли пота: тяжело.
 	draw_rect(Rect2(hero + Vector2(-6, -22 + fposmod(u * 14.0, 10.0)), Vector2(1, 2)), Color("7cc4f2"))
 
