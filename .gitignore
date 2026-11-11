@@ -12,3 +12,8 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+
+# Сборки (собирает CI, см. build/README.md)
+build/web/
+build/windows/
+build/*.zip
