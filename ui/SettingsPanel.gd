@@ -4,7 +4,7 @@ extends Control
 signal closed()
 signal locale_changed()
 
-const LOCALES := {"ru": "Русский", "kk": "Қазақша"}
+const LOCALES := LanguagePicker.LOCALES
 const SLIDER_WIDTH := 240
 
 var allow_locale := true     # в паузе язык не меняем: это пересобирает весь интерфейс
@@ -20,7 +20,7 @@ func open() -> void:
 	for child in get_children():
 		child.queue_free()
 	add_child(UiKit.dim())
-	var list := UiKit.window(self, 460)
+	var list := UiKit.window(self, 560)
 	list.add_child(_centered(UiKit.title(tr("SETTINGS_TITLE"), UiKit.TITLE_SIZE, UiKit.ACCENT)))
 	list.add_child(_slider("SETTINGS_MUSIC", "music"))
 	list.add_child(_slider("SETTINGS_SFX", "sfx"))

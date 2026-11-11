@@ -3,7 +3,7 @@ class_name Settings
 
 const PATH := "user://settings.cfg"
 const SECTION := "settings"
-const DEFAULTS := {"music": 0.7, "sfx": 1.0, "locale": "ru", "fullscreen": false, "best_stars": 0, "best_automation": 0.0}
+const DEFAULTS := {"music": 0.7, "sfx": 1.0, "locale": "ru", "fullscreen": false, "best_stars": 0, "best_automation": 0.0, "intro_seen": false, "locale_chosen": false}
 
 static var _file: ConfigFile
 

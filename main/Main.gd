@@ -3,6 +3,7 @@ extends Node2D
 
 const LAUNCH_CAMERA_TIME := 1.0
 const LAUNCH_CAMERA_RISE := 60.0
+const INTRO_FADE := 0.6          # меню уходит в темноту перед роликом
 
 static var skip_menu := false    # после «Начать сначала» меню не показываем
 
@@ -62,12 +63,15 @@ func _ready() -> void:
 	player.frozen = true
 	if skip_menu:
 		_start_playing()
+	elif not Settings.get_value("locale_chosen"):
+		_pick_language()
 	else:
 		menu.open()
 
 
 func _connect_menus() -> void:
-	menu.new_game_pressed.connect(_start_playing)
+	menu.new_game_pressed.connect(_on_new_game)
+	menu.intro_pressed.connect(_play_intro.bind(menu.open))
 	menu.settings_pressed.connect(func() -> void: _open_settings(true))
 	menu.page_pressed.connect(info_page.open)
 	pause_menu.settings_pressed.connect(func() -> void: _open_settings(false))
@@ -78,9 +82,49 @@ func _connect_menus() -> void:
 	$UI/EndScreen.restart_pressed.connect(restart.bind(false))
 
 
+## Самый первый запуск: выбор языка, потом меню на этом языке.
+func _pick_language() -> void:
+	var picker := LanguagePicker.new()
+	picker.chosen.connect(func(code: String) -> void:
+		Settings.set_value("locale", code)
+		Settings.set_value("locale_chosen", true)
+		restart(true))
+	$UI.add_child(picker)
+
+
 func _open_settings(allow_locale: bool) -> void:
 	settings_panel.allow_locale = allow_locale
 	settings_panel.open()
+
+
+## «Новая игра»: в первый раз сначала вступительный ролик, потом игра.
+func _on_new_game() -> void:
+	if Settings.get_value("intro_seen"):
+		_start_playing()
+	else:
+		_play_intro(_start_playing)
+
+
+## Показать ролик поверх мира; after вызывается, когда экран уже тёмный.
+func _play_intro(after: Callable) -> void:
+	# Меню плавно уходит в темноту вместе с музыкой, ролик начинается из той же темноты.
+	var black := ColorRect.new()
+	black.color = Color(0, 0, 0, 0)
+	black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	black.mouse_filter = Control.MOUSE_FILTER_STOP
+	$UI.add_child(black)
+	get_tree().create_tween().tween_property(Audio, "music_volume", 0.0, INTRO_FADE)
+	var tween := create_tween()
+	tween.tween_property(black, "color:a", 1.0, INTRO_FADE).set_trans(Tween.TRANS_SINE)
+	await tween.finished
+	menu.visible = false
+	var intro: Control = Intro.new()
+	intro.finished.connect(func() -> void:
+		Settings.set_value("intro_seen", true)
+		after.call())
+	$UI.add_child(intro)
+	# Убираем шторку не сразу: в первом кадре ролик ещё не нарисован, и сквозь него мелькнул бы HUD.
+	get_tree().create_timer(0.2).timeout.connect(black.queue_free)
 
 
 func _start_playing() -> void:

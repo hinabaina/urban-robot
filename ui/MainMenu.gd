@@ -5,6 +5,7 @@ signal new_game_pressed()
 signal continue_pressed()
 signal settings_pressed()
 signal page_pressed(page: String)
+signal intro_pressed()
 
 const TITLE_SIZE := 44
 const BUTTON_WIDTH := 300
@@ -36,6 +37,8 @@ func open() -> void:
 	_button(list, "MENU_NEW_GAME", func() -> void: new_game_pressed.emit())
 	_button(list, "MENU_SETTINGS", func() -> void: settings_pressed.emit())
 	_button(list, "MENU_HOWTO", func() -> void: page_pressed.emit("howto"))
+	if Settings.get_value("intro_seen"):
+		_button(list, "MENU_INTRO", func() -> void: intro_pressed.emit())
 	_button(list, "MENU_CREDITS", func() -> void: page_pressed.emit("credits"))
 	if not OS.has_feature("web"):
 		_button(list, "MENU_QUIT", func() -> void: get_tree().quit())

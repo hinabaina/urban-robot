@@ -34,6 +34,8 @@ func scenario_checks() -> void:
 	await _building()
 	await _pause()
 	await _day_end()
+	await _intro()
+	await _languages()
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
 
 
@@ -229,3 +231,52 @@ func scenario_tutorial() -> void:
 	await wait(8.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+## Вступительный ролик (часть A): идёт, синхронизирован с голосом, пропускается и сообщает об окончании.
+func _intro() -> void:
+	var intro := Intro.new()
+	var done := [false]
+	intro.finished.connect(func() -> void: done[0] = true)
+	main.get_node("UI").add_child(intro)
+	await wait(0.5)
+	check("intro: 7 scenes, 25-70 s", intro._starts.size() == 7 and intro.length() > 25.0 and intro.length() < 70.0, intro.length())
+	check("intro: every line has a voice clip", intro._voices.all(func(v: AudioStream) -> bool: return v != null))
+	check("intro: each scene outlasts its voice line",
+		range(7).all(func(i: int) -> bool: return intro._lengths[i] > intro._voices[i].get_length() + intro.VOICE_DELAY))
+	check("intro: subtitle shown", intro._subtitle.text == tr("INTRO_1"), intro._subtitle.text)
+	var esc := InputEventKey.new()
+	esc.keycode = KEY_ESCAPE
+	esc.pressed = true
+	Input.parse_input_event(esc)
+	await wait(2.8)
+	check("intro: Esc skips and emits finished", done[0])
+	check("intro: removed after skip", not is_instance_valid(intro))
+	check("intro: game music volume restored", Audio.music_volume > 0.0, Audio.music_volume)
+
+
+## Три языка: английский перевод полный, у английского и русского свой голос, казахский слышит русский.
+func _languages() -> void:
+	var file := FileAccess.open(Loc.PATH, FileAccess.READ)
+	var header := file.get_csv_line()
+	var empty: Array[String] = []
+	while not file.eof_reached():
+		var row := file.get_csv_line()
+		if row.size() > 1 and row[0] != "" and (row.size() < header.size() or row[header.size() - 1] == ""):
+			empty.append(row[0])
+	check("languages: csv has ru, kk, en", header == PackedStringArray(["keys", "ru", "kk", "en"]), header)
+	check("languages: every key translated to English", empty.is_empty(), empty)
+	check("languages: picker offers ru, kk, en", LanguagePicker.LOCALES.keys() == ["ru", "kk", "en"])
+	check("languages: voice per locale", Intro.voice_language("en") == "en" and Intro.voice_language("ru") == "ru"
+		and Intro.voice_language("kk") == "ru", [Intro.voice_language("en"), Intro.voice_language("kk")])
+	TranslationServer.set_locale("en")
+	var intro := Intro.new()
+	main.get_node("UI").add_child(intro)
+	await wait(0.3)
+	check("languages: English intro has English voice and subtitles",
+		intro._voices.all(func(v: AudioStream) -> bool: return v != null) and intro._subtitle.text.begins_with("The steppe"),
+		intro._subtitle.text)
+	check("languages: English intro 25-70 s", intro.length() > 25.0 and intro.length() < 70.0, intro.length())
+	intro.skip()
+	await wait(2.8)
+	TranslationServer.set_locale("ru")
