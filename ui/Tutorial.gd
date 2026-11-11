@@ -7,7 +7,9 @@ const PANEL_HEIGHT := 56.0
 const ARROW_SCALE := 3.0
 const ARROW_GAP := 26.0            # стрелка висит над целью
 const ARROW_BOB := 5.0
-const EDGE := 40.0                 # отступ стрелки от края экрана, если цель не видна
+const EDGE := 40.0
+const RESCAN_EVERY := 0.5          # как часто искать ближайшую руду для стрелки
+const NO_CELL := Vector2i(-999, -999)                 # отступ стрелки от края экрана, если цель не видна
 
 var _player: CharacterBody2D
 var _world: Node2D
@@ -21,6 +23,8 @@ var _last_x := 0.0
 var _panel: PanelContainer
 var _text: Label
 var _arrow: TextureRect
+var _nearest_cell := NO_CELL
+var _rescan := 0.0
 
 
 func setup(player: CharacterBody2D, world: Node2D) -> void:
@@ -91,6 +95,10 @@ func _process(delta: float) -> void:
 	_last_x = _player.global_position.x
 	_timer += delta
 	var step: Dictionary = _steps[_index]
+	_rescan -= delta
+	if step.get("target", {}).has("nearest") and _rescan <= 0.0:
+		_rescan = RESCAN_EVERY
+		_nearest_cell = _nearest_ore()
 	if _is_done(step["done"]):
 		_index += 1
 		_begin_step()
@@ -115,13 +123,32 @@ func _is_done(done: Dictionary) -> bool:
 	return _timer >= float(done.get("timer", 0.0))
 
 
+## Ближайший к игроку тайл руды: жила, на которую указывала стрелка, могла уже кончиться.
+func _nearest_ore() -> Vector2i:
+	var from := TileCatalog.cell_at(_player.global_position)
+	var best := NO_CELL
+	var best_dist := INF
+	for y in TileCatalog.MAP_SIZE.y:
+		for x in TileCatalog.MAP_SIZE.x:
+			var cell := Vector2i(x, y)
+			if Sim.get_tile(cell) == Sim.Tile.ORE and Vector2(cell - from).length() < best_dist:
+				best_dist = Vector2(cell - from).length()
+				best = cell
+	return best
+
+
 ## Стрелка над целью; если цель за экраном — у края экрана со стороны цели.
 func _place_arrow(target: Dictionary) -> void:
 	_arrow.visible = not target.is_empty()
 	if target.is_empty():
 		return
 	var world_pos: Vector2
-	if target.has("marker"):
+	if target.has("nearest"):
+		if _nearest_cell == NO_CELL:
+			_arrow.visible = false
+			return
+		world_pos = TileCatalog.cell_center(_nearest_cell)
+	elif target.has("marker"):
 		world_pos = _world.marker_pos(target["marker"])
 	else:
 		world_pos = TileCatalog.cell_center(Vector2i(int(target["cell"][0]), int(target["cell"][1])))

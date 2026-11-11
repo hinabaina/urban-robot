@@ -57,7 +57,10 @@ func _interact(machine: Dictionary) -> void:
 		"furnace":
 			_collect(Sim.take(cell), cell)
 			_give(cell, "ore", GameState.pockets["ore"])
-			_give(cell, "grain", GameState.pockets["grain"])
+			var grain_before: int = GameState.pockets["grain"]
+			_give(cell, "grain", grain_before)
+			if GameState.pockets["grain"] < grain_before:
+				GameState.report("furnace_fueled")
 		_:
 			_collect(Sim.take(cell), cell)
 	Audio.play("interact")
