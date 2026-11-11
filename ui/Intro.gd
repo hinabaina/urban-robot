@@ -9,13 +9,13 @@ signal finished()
 const VIEW_SIZE := Vector2i(320, 180)
 const AUDIO := "res://assets/audio/"
 const LINES := 7
-const MIN_SECONDS := [6.0, 8.0, 5.5, 6.5, 5.5, 7.5, 3.0]   # сцена не короче этого, даже без голоса
-const PAD_SECONDS := 0.7                                      # пауза после реплики до следующей сцены
+const MIN_SECONDS := [4.0, 5.0, 4.0, 4.5, 4.0, 5.0, 3.0]   # сцена не короче этого; обычно длину задаёт голос
+const PAD_SECONDS := 0.4                                      # пауза после реплики до следующей сцены
 const VOICE_DELAY := 0.35                                     # реплика начинается чуть позже картинки
 const LIGHTNING := [0.42, 0.58, 0.74]                         # доли сцены бури с молниями
 const QUOTA := 120
 const FADE := 0.6
-const SUB_SIZE := 32
+const SUB_SIZE := 28
 const COUNTER_SIZE := 30
 
 var _stage: Node2D
@@ -180,7 +180,7 @@ func _build_view() -> void:
 func _build_text() -> void:
 	_subtitle = _outlined(SUB_SIZE, UiKit.TEXT)
 	_subtitle.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_subtitle.offset_top = -120
+	_subtitle.offset_top = -150
 	_subtitle.offset_bottom = -36
 	_subtitle.offset_left = 120
 	_subtitle.offset_right = -120
