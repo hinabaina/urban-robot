@@ -1,0 +1,25 @@
+{
+	"tick_seconds": 0.25,
+	"size": [64, 40],
+	"tiles": {
+		"soil": {"rows": [12, 18], "dig_time": 0.4, "vein_reserve": 40},
+		"stone": {"rows": [19, 28], "dig_time": 0.9, "vein_reserve": 120},
+		"deep": {"rows": [29, 37], "dig_time": 1.6, "vein_reserve": -1},
+		"bedrock": {"rows": [38, 39], "dig_time": 0},
+		"ore": {"dig_time": 1.2},
+		"farmland": {"dig_time": 0}
+	},
+	"exhausted_vein_tile": "stone",
+	"well": {
+		"cells": [[5, 11], [6, 11]],
+		"radius": 10
+	},
+	"farm": {
+		"max_plots": 24,
+		"stage_seconds": 10.0,
+		"growing_stages": 3,
+		"wet_seconds": 15.0,
+		"yield": 3
+	},
+	"stats_window_seconds": 30.0
+}

@@ -1,0 +1,49 @@
+{
+	"ladder": {
+		"size": [1, 1],
+		"cost": {}
+	},
+	"conveyor": {
+		"size": [1, 1],
+		"cost": {"ore": 1},
+		"cell_seconds": 1.0
+	},
+	"drill": {
+		"size": [2, 2],
+		"cost": {"ingot": 3, "ore": 5},
+		"cycle_seconds": 4.0,
+		"output_buffer": 5
+	},
+	"furnace": {
+		"size": [2, 2],
+		"cost": {"ore": 8, "ingot": 2},
+		"cycle_seconds": 6.0,
+		"recipe_in": {"ore": 2, "grain": 1},
+		"input_buffer": {"ore": 10, "grain": 5},
+		"output_buffer": 5
+	},
+	"sprinkler": {
+		"size": [1, 1],
+		"cost": {"ingot": 2},
+		"interval_seconds": 5.0,
+		"radius": 3
+	},
+	"harvester": {
+		"size": [1, 1],
+		"cost": {"ingot": 3, "grain": 3},
+		"interval_seconds": 2.0,
+		"radius": 2,
+		"replant": 1,
+		"output_buffer": 6
+	},
+	"storage": {
+		"size": [2, 2],
+		"cost": {}
+	},
+	"campfire": {
+		"size": [1, 1],
+		"cost": {},
+		"cycle_seconds": 3.0,
+		"recipe_in": {"ore": 2, "grain": 1}
+	}
+}
