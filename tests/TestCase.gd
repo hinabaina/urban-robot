@@ -19,11 +19,16 @@ func check(condition: bool, what: String) -> void:
 	else:
 		failed += 1
 		print("  FAIL  %s" % what)
-		push_error("[%s] %s" % [_group, what])
 
 
 func equal(actual, expected, what: String) -> void:
 	check(actual == expected, "%s (ожидалось %s, получено %s)" % [what, expected, actual])
+
+
+## Число в пределах допуска: для проверок баланса.
+func near(actual: float, expected: float, tolerance: float, what: String) -> void:
+	check(absf(actual - expected) <= tolerance,
+		"%s (ожидалось %s ± %s, получено %s)" % [what, expected, tolerance, actual])
 
 
 func summary() -> int:

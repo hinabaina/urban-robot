@@ -13,11 +13,11 @@ config_version=5
 config/name="DALA WORKS"
 config/description="2D-игра про автоматизацию: за 5 дней превратить ручной труд в фабрику и запустить метеоспутник."
 run/main_scene="res://main/Main.tscn"
-config/features=PackedStringArray("4.4", "GL Compatibility")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
-Sim="*res://dev_stub/SimStub.gd"
+Sim="*res://sim/Simulation.gd"
 GameState="*res://autoload/GameState.gd"
 DayCycle="*res://autoload/DayCycle.gd"
 SaveManager="*res://autoload/SaveManager.gd"

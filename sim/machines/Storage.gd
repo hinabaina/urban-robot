@@ -16,7 +16,6 @@ func accept(item: Item, _from_dir: Vector2i) -> void:
 		_queues[item.type] = []
 	_queues[item.type].append(item.by_hand)
 	sim.item_delivered.emit(item.type, item.by_hand)
-	sim.storage_changed.emit(item.type, count(item.type))
 
 
 func count(item_type: String) -> int:
@@ -24,39 +23,40 @@ func count(item_type: String) -> int:
 
 
 ## Игрок берёт руду и зерно. Слитки взять нельзя, чтобы не ломать подсчёт квоты.
-func take_by_hand(room: Dictionary) -> Dictionary:
-	var taken := {}
+func take_by_hand() -> Array[Item]:
+	var taken: Array[Item] = []
 	for item_type in _queues.keys():
-		if item_type == Item.INGOT:
-			continue
-		var amount: int = mini(count(item_type), int(room.get(item_type, 0)))
-		if amount > 0:
-			_remove(item_type, amount)
-			taken[item_type] = amount
+		if item_type != Item.INGOT:
+			taken.append_array(_remove(item_type, count(item_type)))
 	return taken
 
 
 ## Дрон забирает до amount слитков, самые старые первыми.
-## Возвращает {"taken": сколько забрал, "by_hand": сколько из них тронуты руками}.
-func take_for_drone(amount: int) -> Dictionary:
-	var taken: int = mini(amount, count(Item.INGOT))
-	var flags: Array = _remove(Item.INGOT, taken)
-	return {"taken": taken, "by_hand": flags.count(true)}
+func take_for_drone(amount: int) -> Array[Item]:
+	return _remove(Item.INGOT, mini(amount, count(Item.INGOT)))
 
 
-func contents() -> Dictionary:
-	var result := {}
+func contents() -> Array[Item]:
+	var result: Array[Item] = []
 	for item_type in _queues.keys():
-		if count(item_type) > 0:
-			result[item_type] = count(item_type)
+		for by_hand in _queues[item_type]:
+			result.append(Item.new(item_type, by_hand))
 	return result
 
 
-func _remove(item_type: String, amount: int) -> Array:
-	if amount <= 0:
-		return []
-	var queue: Array = _queues[item_type]
-	var removed := queue.slice(0, amount)
-	_queues[item_type] = queue.slice(amount)
-	sim.storage_changed.emit(item_type, count(item_type))
+func save() -> Dictionary:
+	var saved := super()
+	saved["queues"] = _queues.duplicate(true)
+	return saved
+
+
+func restore(saved: Dictionary) -> void:
+	super(saved)
+	_queues = saved.get("queues", {}).duplicate(true)
+
+
+func _remove(item_type: String, amount: int) -> Array[Item]:
+	var removed: Array[Item] = []
+	for i in amount:
+		removed.append(Item.new(item_type, _queues[item_type].pop_front()))
 	return removed

@@ -1,7 +1,7 @@
 class_name Machine
 extends RefCounted
 ## Базовый класс всех машин. Владелец: A.
-## Каждая машина это наследник со своим tick(). Общий интерфейс описан в docs/CONTRACT.md.
+## Каждая машина это наследник со своим tick(). Лестница пассивна и использует этот класс как есть.
 
 enum State { IDLE, WORKING, BLOCKED, NO_FUEL, NO_WATER, EXHAUSTED }
 
@@ -17,8 +17,15 @@ var size := Vector2i.ONE
 var state: int = State.IDLE
 ## Запись этой машины из data/machines.json.
 var config: Dictionary = {}
-## Simulation, которой принадлежит машина (нужна для сигналов).
+## Simulation, которой принадлежит машина.
 var sim: Node
+## Выходной буфер: готовые предметы ждут здесь перехода дальше.
+var out: Array[Item] = []
+## От кого машина приняла предмет в прошлый раз (для слияния потоков по очереди).
+## Храним номер объекта, а не ссылку, чтобы машины не удерживали друг друга в памяти.
+var last_source_id := 0
+var stats := MachineStats.new()
+var _made_this_tick := 0
 
 
 func setup(p_type: String, p_cell: Vector2i, p_dir: Vector2i, p_config: Dictionary, p_sim: Node) -> void:
@@ -34,7 +41,15 @@ func cells() -> Array[Vector2i]:
 	return Grid.rect_cells(cell, size)
 
 
-## Может ли машина прямо сейчас принять предмет, пришедший со стороны from_dir.
+## Клетка, куда машина отдаёт предметы: соседняя по направлению выхода,
+## в строке (или столбце) левой верхней клетки.
+func output_cell() -> Vector2i:
+	var dx := size.x if dir.x > 0 else (-1 if dir.x < 0 else 0)
+	var dy := size.y if dir.y > 0 else (-1 if dir.y < 0 else 0)
+	return cell + Vector2i(dx, dy)
+
+
+## Может ли машина прямо сейчас принять предмет, который движется в направлении from_dir.
 func can_accept(_item: Item, _from_dir: Vector2i) -> bool:
 	return false
 
@@ -44,48 +59,63 @@ func accept(_item: Item, _from_dir: Vector2i) -> void:
 	pass
 
 
-## Один шаг симуляции (0,25 с). Наследники обновляют таймеры и состояние.
+## Один шаг симуляции (0,25 с): таймеры, производство, состояние.
 func tick() -> void:
 	pass
 
 
+## Конец тика, после всех переходов предметов: запись статистики.
+func end_tick() -> void:
+	stats.record(state, _made_this_tick, sim.stats_window)
+	_made_this_tick = 0
+
+
 ## Предмет, готовый к выдаче, без изъятия. null, если выдавать нечего.
 func peek_output() -> Item:
-	return null
+	return out[0] if not out.is_empty() else null
 
 
-## Изъять готовый предмет. null, если выдавать нечего.
 func take_output() -> Item:
-	return null
+	return out.pop_front()
 
 
-## Игрок забирает предметы клавишей E. room: сколько ещё влезет в карманы по типам.
-func take_by_hand(_room: Dictionary) -> Dictionary:
-	return {}
+func output_full() -> bool:
+	return out.size() >= int(config.get("output_buffer", 0))
 
 
-## Всё, что лежит внутри, по типам: {"ore": 2, ...}. Нужно при сносе.
-func contents() -> Dictionary:
-	return {}
+## Игрок забирает предметы клавишей E.
+func take_by_hand() -> Array[Item]:
+	var taken := out.duplicate()
+	out.clear()
+	return taken
+
+
+## Всё, что лежит внутри (возвращается игроку при сносе).
+func contents() -> Array[Item]:
+	return out.duplicate()
 
 
 func set_state(new_state: int) -> void:
 	if new_state == state:
 		return
 	state = new_state
-	if sim != null:
-		sim.machine_state_changed.emit(cell, state)
+	sim.machine_state_changed.emit(cell, state)
 
 
-## Снимок для вида и UI.
-func describe() -> Dictionary:
+## Положить произведённый предмет в выходной буфер.
+func produce(item: Item) -> void:
+	out.append(item)
+	_made_this_tick += 1
+	sim.report.note_made(item.type)
+
+
+func save() -> Dictionary:
 	return {
-		"type": type, "cell": cell, "dir": dir, "size": size,
-		"state": state, "contents": contents(),
+		"type": type, "cell": SimData.from_vec2i(cell), "dir": SimData.from_vec2i(dir),
+		"state": state, "out": Item.save_list(out),
 	}
 
 
-func to_dict() -> Dictionary:
-	return {
-		"type": type, "cell": [cell.x, cell.y], "dir": [dir.x, dir.y], "state": state,
-	}
+func restore(saved: Dictionary) -> void:
+	state = int(saved.get("state", State.IDLE))
+	out = Item.load_list(saved.get("out", []))

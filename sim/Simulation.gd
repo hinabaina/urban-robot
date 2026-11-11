@@ -2,77 +2,77 @@ class_name Simulation
 extends Node
 ## Вся игровая логика фабрики. Автозагрузка `Sim`. Владелец: A.
 ## Не обращается к нодам сцены: наружу только сигналы и методы чтения.
+## Это фасад: логика лежит в Grid, Veins, Farm, Placement, Transfers и машинах.
 ## Полное описание методов и сигналов: docs/CONTRACT.md.
 
-signal world_loaded
 signal ticked(tick: int)
 signal tile_changed(cell: Vector2i, kind: int)
 signal machine_placed(cell: Vector2i, type: String, dir: Vector2i)
-signal machine_removed(cell: Vector2i, type: String)
+signal machine_removed(cell: Vector2i)
 signal machine_state_changed(cell: Vector2i, state: int)
 signal item_delivered(type: String, by_hand: bool)
-signal storage_changed(type: String, count: int)
 signal crop_changed(cell: Vector2i, stage: int, wet: bool)
 signal vein_exhausted(vein_id: int)
 
-const SAVE_VERSION := 1
-
+const Tile = Tiles.Kind
+const State = Machine.State
 var data := SimData.new()
 var grid := Grid.new()
+var veins := Veins.new(self)
 var farm := Farm.new(self)
-var mining := Mining.new(self)
 var placement := Placement.new(self)
+var transfers := Transfers.new(self)
+var saver := SimSave.new(self)
+var report := SimReport.new(self)
 var tick_count := 0
+## Длина окна статистики в тиках (30 с).
+var stats_window := 1
 var _accumulator := 0.0
 
 
-func _ready() -> void:
+func _init() -> void:
 	data.load_all()
+	stats_window = data.ticks(float(data.world.get("stats_window_seconds", 30.0)))
 
 
 # --- Жизненный цикл -----------------------------------------------------------
 
-## Очистить мир (новая игра, загрузка, тесты).
-func reset() -> void:
+## Новая игра: полностью сбрасывает симуляцию. tiles: Vector2i -> Tile, клетки без записи = воздух.
+func load_world(tiles: Dictionary) -> void:
+	placement.clear()
 	grid.clear()
-	farm.clear()
+	grid.size = SimData.to_vec2i(data.world.get("size"), Vector2i.ZERO)
+	grid.tiles = tiles.duplicate()
+	veins.build()
+	farm.build()
 	tick_count = 0
 	_accumulator = 0.0
-
-
-## Загрузить стартовую карту. world: {"size": Vector2i, "tiles": {Vector2i: Tiles.Kind},
-## "well": Vector2i, "plots": [Vector2i], "prebuilt": [{"type", "cell", "dir"}]}.
-func load_world(world: Dictionary) -> void:
-	reset()
-	grid.size = world.get("size", SimData.to_vec2i(data.world.get("size"), Vector2i.ZERO))
-	grid.tiles = world.get("tiles", {}).duplicate()
-	farm.well = world.get("well", Vector2i.ZERO)
-	for cell in world.get("plots", []):
-		farm.add_plot(cell)
-	for entry in world.get("prebuilt", []):
-		placement.place(entry["type"], entry["cell"], entry.get("dir", Vector2i.RIGHT), true)
-	world_loaded.emit()
+	report.reset_period()
 
 
 ## Продвинуть симуляцию на dt секунд (dt уже умножен на скорость игры).
-## Внутри время режется на тики фиксированной длины, поэтому результат не зависит от FPS.
+## Время режется на тики фиксированной длины, поэтому результат не зависит от FPS.
 func advance(dt: float) -> void:
-	var step := data.tick_seconds()
-	if dt <= 0.0 or step <= 0.0:
-		return
-	_accumulator += dt
-	while _accumulator >= step:
-		_accumulator -= step
+	_accumulator += maxf(dt, 0.0)
+	while _accumulator >= data.tick_seconds():
+		_accumulator -= data.tick_seconds()
 		tick()
 
 
-## Один тик (0,25 с).
+## Доля текущего тика 0..1, для сглаживания отрисовки между тиками.
+func tick_alpha() -> float:
+	return _accumulator / data.tick_seconds()
+
+
+## Один тик (0,25 с). Порядок фаз из GDD: машины и движение -> рост -> переходы -> статистика.
 func tick() -> void:
 	tick_count += 1
-	# TODO(A2): порядок фаз из GDD: машины -> рост -> движение -> переходы -> статистика.
 	for machine in grid.machines():
 		machine.tick()
 	farm.tick()
+	transfers.run()
+	for machine in grid.machines():
+		machine.end_tick()
 	ticked.emit(tick_count)
 
 
@@ -84,14 +84,23 @@ func can_place(type: String, cell: Vector2i, dir: Vector2i) -> Dictionary:
 func place_machine(type: String, cell: Vector2i, dir: Vector2i) -> bool:
 	return placement.place(type, cell, dir)
 
-func remove_machine(cell: Vector2i) -> Dictionary:
+## Снести машину. Возвращает предметы, лежавшие внутри; цену возвращает B.
+func remove_machine(cell: Vector2i) -> Array[Item]:
 	return placement.remove(cell)
 
+## Сколько секунд держать ЛКМ на тайле; 0, если копать нельзя.
 func dig_time(cell: Vector2i) -> float:
-	return mining.dig_time(cell)
+	return data.dig_time(grid.get_tile(cell))
 
+## Игрок докопал тайл. {"removed": тайл исчез, "ore": игрок получил 1 руду}.
 func dig(cell: Vector2i) -> Dictionary:
-	return mining.dig(cell)
+	if dig_time(cell) <= 0.0:
+		return {"removed": false, "ore": false}
+	if grid.get_tile(cell) == Tile.ORE:
+		return {"removed": false, "ore": veins.take_ore(veins.at(cell))}
+	grid.set_tile(cell, Tile.AIR)
+	tile_changed.emit(cell, Tile.AIR)
+	return {"removed": true, "ore": false}
 
 ## E: положить один предмет из карманов в машину. Предмет помечается by_hand.
 func insert(cell: Vector2i, item_type: String) -> bool:
@@ -102,18 +111,20 @@ func insert(cell: Vector2i, item_type: String) -> bool:
 	machine.accept(item, Machine.BY_HAND)
 	return true
 
-## E: взять предметы из машины. room: сколько ещё влезет в карманы, {"ore": 12, ...}.
-func take(cell: Vector2i, room: Dictionary) -> Dictionary:
+## E: забрать предметы из машины. Всё взятое руками становится by_hand.
+func take(cell: Vector2i) -> Array[Item]:
 	var machine := grid.machine_at(cell)
-	return machine.take_by_hand(room) if machine != null else {}
+	var items: Array[Item] = machine.take_by_hand() if machine != null else []
+	for item in items:
+		item.by_hand = true
+	return items
 
 ## Игрок держит ЛКМ на костре dt секунд. true, когда готов слиток (в карманы кладёт B).
-func campfire_work(cell: Vector2i, dt: float) -> bool:
-	var campfire := grid.machine_at(cell) as Campfire
-	return campfire.work(dt) if campfire != null else false
-
-func can_plant(cell: Vector2i) -> Dictionary:
-	return farm.can_plant(cell)
+func campfire_work(dt: float) -> bool:
+	for machine in grid.machines():
+		if machine is Campfire and machine.has_recipe():
+			return machine.work(dt)
+	return false
 
 func plant(cell: Vector2i) -> bool:
 	return farm.plant(cell)
@@ -124,10 +135,11 @@ func water(cell: Vector2i) -> bool:
 func harvest(cell: Vector2i) -> int:
 	return farm.harvest(cell)
 
-## Дрон забирает до amount слитков со склада: {"taken": int, "by_hand": int}.
-func storage_take_for_drone(amount: int) -> Dictionary:
+## Дрон забирает до amount слитков со склада, самые старые первыми.
+func storage_take_for_drone(amount: int) -> Array[Item]:
 	var storage := _storage()
-	return storage.take_for_drone(amount) if storage != null else {"taken": 0, "by_hand": 0}
+	var empty: Array[Item] = []
+	return storage.take_for_drone(amount) if storage != null else empty
 
 
 # --- Чтение состояния ---------------------------------------------------------
@@ -135,22 +147,21 @@ func storage_take_for_drone(amount: int) -> Dictionary:
 func get_tile(cell: Vector2i) -> int:
 	return grid.get_tile(cell)
 
-func get_machine(cell: Vector2i) -> Dictionary:
-	var machine := grid.machine_at(cell)
-	return machine.describe() if machine != null else {}
+## Машины: у каждой читаются cell, type, dir, state.
+func get_machines() -> Array[Machine]:
+	return grid.machines()
 
-func get_machines() -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+## Предметы на конвейерах: у каждого читаются cell, dir, progress, type, by_hand.
+func get_items() -> Array[Item]:
+	var result: Array[Item] = []
 	for machine in grid.machines():
-		result.append(machine.describe())
+		if machine is Conveyor and machine.item != null:
+			result.append(machine.item)
 	return result
 
-## Предметы на конвейерах: [{"type", "cell", "dir", "progress", "by_hand", "stuck"}].
-func get_items() -> Array[Dictionary]:
-	return []  # TODO(A3): появятся вместе с конвейером.
-
-func get_crops() -> Array[Dictionary]:
-	return farm.snapshot()
+## Грядки: у каждой читаются cell, stage (0 пусто .. 4 зрелая), wet.
+func get_crops() -> Array:
+	return farm.plots.values()
 
 func is_in_water_zone(cell: Vector2i) -> bool:
 	return farm.in_water_zone(cell)
@@ -159,33 +170,23 @@ func storage_count(item_type: String) -> int:
 	var storage := _storage()
 	return storage.count(item_type) if storage != null else 0
 
-func machine_types() -> Array:
-	return data.machines.keys()
+## Рентген: {"working", "blocked", "no_fuel", "idle"} (доли 0..1 за последние 30 с) и "per_min".
+func get_stats(cell: Vector2i) -> Dictionary:
+	return report.machine_stats(cell)
 
-func machine_config(type: String) -> Dictionary:
-	return data.machine(type)
-
-## Доли времени в состояниях за последние 30 с и производительность, для рентгена.
-func get_stats(_cell: Vector2i) -> Dictionary:
-	# TODO(A3/A10): кольцевой буфер состояний. Пока нули.
-	return {"working": 0.0, "blocked": 0.0, "no_fuel": 0.0, "idle": 1.0, "per_minute": 0.0}
-
-## Начать новый отчётный период (вызывает DayCycle перед ночью).
+## Начать новый отчётный период (перед ночью).
 func reset_period_stats() -> void:
-	pass  # TODO(A8)
+	report.reset_period()
 
-## Итоги периода для ночного отчёта.
-func period_summary() -> Dictionary:
-	# TODO(A8): считать произведённое и главное узкое место. Пока нули.
-	return {"produced": {Item.ORE: 0, Item.GRAIN: 0, Item.INGOT: 0}, "bottleneck": {}}
+## Ночной отчёт: {"made": {"ore", "grain", "ingot"}, "bottleneck": {"cell", "type", "state", "share"}}.
+func night_summary() -> Dictionary:
+	return report.summary()
 
 func to_dict() -> Dictionary:
-	# TODO(A9): полное сохранение мира, машин, предметов и фермы.
-	return {"version": SAVE_VERSION, "tick": tick_count}
+	return saver.to_dict()
 
-func from_dict(save: Dictionary) -> bool:
-	# TODO(A9): восстановление. Пока только проверка версии.
-	return int(save.get("version", -1)) == SAVE_VERSION
+func from_dict(saved: Dictionary) -> bool:
+	return saver.from_dict(saved)
 
 
 func _storage() -> Storage:

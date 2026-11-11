@@ -3,10 +3,13 @@ extends RefCounted
 ## Жила руды: один объект с общим запасом, тайлы только её картинка. GDD «Ручные действия».
 ## Владелец: A.
 
-var id: int = 0
-var cells: Array[Vector2i] = []
-## Сколько руды осталось. -1 = бесконечная жила (глубокая порода).
-var reserve: int = 0
+const INFINITE := -1
 
-# TODO(A4): поиск жил заливкой по тайлам ORE, списание запаса киркой и буром,
-# превращение тайлов в камень при исчерпании и сигнал vein_exhausted.
+var id := 0
+var cells: Array[Vector2i] = []
+## Сколько руды осталось. INFINITE = бесконечная жила (глубокая порода).
+var reserve := 0
+
+
+func is_alive() -> bool:
+	return reserve != 0
