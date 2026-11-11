@@ -8,11 +8,15 @@ const EXHAUSTED_TINT := Color(0.5, 0.5, 0.55)
 const BLOCKED_TINT := Color(1.0, 0.45, 0.4)
 const CAMPFIRE_GLOW_TIME := 0.25
 const ICON_GAP := 7.0
+const HIGHLIGHT_TIME := 8.0      # сколько секунд утром мигает машина из ночного отчёта
+const HIGHLIGHT_COLOR := Color(1.0, 0.67, 0.27)
 const ARROW_INSET := 4.0         # стрелка выхода сидит на краю машины, внутри её контура
 
 var _nodes := {}      # клетка-якорь -> {type, sprite, icon, state}
 var _time := 0.0
 var _campfire_lit := 0.0
+var _highlight_cell := Vector2i(-999, -999)
+var _highlight_left := 0.0
 # Единственное место, где B знает числа состояний симуляции.
 @onready var _icon_of_state := {Sim.State.BLOCKED: "stop", Sim.State.NO_FUEL: "no_fuel",
 	Sim.State.NO_WATER: "no_water", Sim.State.EXHAUSTED: "exhausted"}
@@ -23,6 +27,9 @@ func _ready() -> void:
 	Sim.machine_placed.connect(_on_placed)
 	Sim.machine_removed.connect(_on_removed)
 	Sim.machine_state_changed.connect(_on_state)
+	DayCycle.day_ended.connect(func(_day: int) -> void:
+		_highlight_cell = Sim.night_summary().get("bottleneck", {}).get("cell", Vector2i(-999, -999)))
+	DayCycle.day_started.connect(func(_day: int) -> void: _highlight_left = HIGHLIGHT_TIME)
 
 
 func light_campfire(_cell: Vector2i) -> void:
@@ -89,6 +96,7 @@ func _on_state(cell: Vector2i, state: int) -> void:
 func _process(delta: float) -> void:
 	_time += delta * DayCycle.speed if DayCycle.running else 0.0
 	_campfire_lit = maxf(0.0, _campfire_lit - delta)
+	_highlight_left = maxf(0.0, _highlight_left - delta)
 	var blink := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.008)
 	for cell in _nodes:
 		var node: Dictionary = _nodes[cell]
@@ -108,6 +116,8 @@ func _process(delta: float) -> void:
 			tint = Color.WHITE.lerp(BLOCKED_TINT, blink)
 		elif state == Sim.State.EXHAUSTED:
 			tint = EXHAUSTED_TINT
+		if cell == _highlight_cell and _highlight_left > 0.0:
+			tint = tint.lerp(HIGHLIGHT_COLOR, blink)
 		sprite.texture = Sprites.machine(type, frame)
 		sprite.modulate = tint
 		node["icon"].offset.y = roundf(sin(Time.get_ticks_msec() * 0.005) * 1.5)

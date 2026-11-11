@@ -213,3 +213,15 @@ func relaunch(load_save: bool) -> void:
 	main = load("res://main/Main.tscn").instantiate()
 	get_tree().root.add_child(main)
 	await get_tree().create_timer(0.3).timeout
+
+
+## Ночной отчёт с узким местом: печь без зерна всю ночь.
+func scenario_report() -> void:
+	await scenario_factory()
+	DayCycle.hour = 17.95
+	while DayCycle.phase != DayCycle.Phase.EVENING:
+		await get_tree().create_timer(0.1).timeout
+	DayCycle.sleep()
+	while DayCycle.phase != DayCycle.Phase.REPORT:
+		await get_tree().create_timer(0.1).timeout
+	print("summary=", Sim.night_summary())

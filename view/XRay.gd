@@ -13,6 +13,9 @@ const FONT_SIZE := 8
 const LABEL_GAP := 3.0
 
 var active := false
+# Простои, у которых своя причина: в рентгене поверх машины рисуем её значок, чтобы не путать с обычным простоем.
+@onready var _icon_of_state := {Sim.State.BLOCKED: "stop", Sim.State.NO_FUEL: "no_fuel",
+	Sim.State.NO_WATER: "no_water", Sim.State.EXHAUSTED: "exhausted"}
 
 
 func _ready() -> void:
@@ -58,6 +61,10 @@ func _draw() -> void:
 		var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
 		draw_string(font, Vector2(rect.get_center().x - width * 0.5, rect.position.y - LABEL_GAP), text,
 			HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, color)
+		var state: int = machine.get("state")
+		if _icon_of_state.has(state):
+			var icon := Sprites.state_icon(_icon_of_state[state])
+			draw_texture(icon, (rect.get_center() - icon.get_size() * 0.5).round())
 	for item in Sim.get_items():   # предметы, которые стоят в конце клетки, — затор
 		if float(item.get("progress")) >= 1.0:
 			draw_circle(TileCatalog.cell_center(item.get("cell")), 2.0, BAD)

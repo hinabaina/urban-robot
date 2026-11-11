@@ -1,7 +1,11 @@
 # Ночной отчёт («газета»): что сделала фабрика, сколько сдано, что привёз дрон. Кнопка «Утро». Владелец: B.
 extends Control
 
+const BOTTLENECK_TYPES := ["drill", "furnace", "sprinkler", "harvester"]
+
 var _list: VBoxContainer
+@onready var _reason_of_state := {Sim.State.BLOCKED: "REPORT_WHY_BLOCKED", Sim.State.NO_FUEL: "REPORT_WHY_NO_FUEL",
+	Sim.State.NO_WATER: "REPORT_WHY_NO_WATER", Sim.State.EXHAUSTED: "REPORT_WHY_EXHAUSTED"}
 var _last_result := {}
 
 
@@ -18,9 +22,11 @@ func _show(day: int) -> void:
 	for child in _list.get_children():
 		child.queue_free()
 	_add(UiKit.title(tr("REPORT_TITLE") % day, UiKit.TITLE_SIZE, UiKit.ACCENT))
-	var made: Dictionary = Sim.night_summary().get("made", {})
+	var summary: Dictionary = Sim.night_summary()
+	var made: Dictionary = summary.get("made", {})
 	if not made.is_empty():
 		_add(UiKit.label(tr("REPORT_MADE") % [made.get("ingot", 0), made.get("ore", 0), made.get("grain", 0)]))
+	_add_bottleneck(summary.get("bottleneck", {}))
 	if not _last_result.is_empty():
 		var color := UiKit.GOOD if _last_result["ok"] else UiKit.BAD
 		_add(UiKit.label(tr("REPORT_DELIVERED") % [_last_result["taken"], _last_result["quota"]], UiKit.FONT_SIZE, color))
@@ -38,6 +44,18 @@ func _show(day: int) -> void:
 	button.custom_minimum_size.x = 180
 	_add(button)
 	visible = true
+
+
+## «Узкое место: печь — 60% ночи без зерна» или «простоев не было», если фабрика есть.
+func _add_bottleneck(worst: Dictionary) -> void:
+	if worst.is_empty():
+		var has_factory := Sim.get_machines().any(func(m: Variant) -> bool: return BOTTLENECK_TYPES.has(m.get("type")))
+		if has_factory:
+			_add(UiKit.label(tr("REPORT_NO_BOTTLENECK"), UiKit.FONT_SIZE, UiKit.GOOD))
+		return
+	var reason: String = _reason_of_state.get(int(worst["state"]), "REPORT_WHY_BLOCKED")
+	var text := tr("REPORT_BOTTLENECK") % [tr("SLOT_" + str(worst["type"])).to_lower(), int(round(float(worst["share"]) * 100.0)), tr(reason)]
+	_add(UiKit.label(text, UiKit.FONT_SIZE, UiKit.BAD))
 
 
 func _add(node: Control) -> void:
