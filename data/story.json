@@ -1,0 +1,160 @@
+{
+ "calls": [
+  {
+   "id": "hello",
+   "day": 1,
+   "hour": 6.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_HELLO_1",
+    "RADIO_HELLO_2",
+    "RADIO_HELLO_3"
+   ]
+  },
+  {
+   "id": "auto",
+   "event": "auto_ingot",
+   "who": "aisha",
+   "lines": [
+    "RADIO_AUTO"
+   ]
+  },
+  {
+   "id": "day2",
+   "day": 2,
+   "hour": 6.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_DAY2"
+   ]
+  },
+  {
+   "id": "pump",
+   "day": 2,
+   "hour": 10.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_PUMP"
+   ],
+   "choices": [
+    {
+     "text": "RADIO_PUMP_YES",
+     "need": {
+      "storage_ingot": 3
+     },
+     "effects": {
+      "storage_ingot": -3,
+      "flag": "pump"
+     },
+     "reply": "RADIO_PUMP_YES_R"
+    },
+    {
+     "text": "RADIO_PUMP_NO",
+     "effects": {},
+     "reply": "RADIO_PUMP_NO_R"
+    }
+   ]
+  },
+  {
+   "id": "day3_good",
+   "day": 3,
+   "hour": 6.0,
+   "if": "pump",
+   "who": "aisha",
+   "lines": [
+    "RADIO_DAY3_GOOD"
+   ],
+   "effects": {
+    "pockets": {
+     "grain": 8
+    }
+   }
+  },
+  {
+   "id": "day3_bad",
+   "day": 3,
+   "hour": 6.0,
+   "unless": "pump",
+   "who": "aisha",
+   "lines": [
+    "RADIO_DAY3_BAD"
+   ]
+  },
+  {
+   "id": "storm",
+   "day": 3,
+   "hour": 11.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_STORM"
+   ],
+   "choices": [
+    {
+     "text": "RADIO_STORM_HIDE",
+     "effects": {
+      "skip_hours": 2
+     },
+     "reply": "RADIO_STORM_HIDE_R"
+    },
+    {
+     "text": "RADIO_STORM_RISK",
+     "effects": {
+      "break_belts": 3
+     },
+     "reply": "RADIO_STORM_RISK_R"
+    }
+   ]
+  },
+  {
+   "id": "day4",
+   "day": 4,
+   "hour": 6.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_DAY4"
+   ]
+  },
+  {
+   "id": "erzhan",
+   "day": 4,
+   "hour": 10.0,
+   "who": "erzhan",
+   "lines": [
+    "RADIO_ERZHAN"
+   ],
+   "choices": [
+    {
+     "text": "RADIO_ERZHAN_YES",
+     "need": {
+      "pockets": {
+       "grain": 6
+      }
+     },
+     "effects": {
+      "pockets": {
+       "grain": -6,
+       "ingot": 3,
+       "ore": 5
+      },
+      "flag": "erzhan"
+     },
+     "reply": "RADIO_ERZHAN_YES_R"
+    },
+    {
+     "text": "RADIO_ERZHAN_NO",
+     "effects": {},
+     "reply": "RADIO_ERZHAN_NO_R"
+    }
+   ]
+  },
+  {
+   "id": "day5",
+   "day": 5,
+   "hour": 6.0,
+   "who": "aisha",
+   "lines": [
+    "RADIO_DAY5"
+   ]
+  }
+ ]
+}

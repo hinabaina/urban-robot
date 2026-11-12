@@ -64,6 +64,11 @@ func _ready() -> void:
 	$UI.add_child(moment)
 	$UI.move_child(moment, $UI/PauseMenu.get_index())   # над HUD и подсказками, под паузой и меню
 	moment.setup(player, world)
+	var radio := Radio.new()
+	radio.name = "Radio"
+	$UI.add_child(radio)
+	$UI.move_child(radio, $UI/PauseMenu.get_index())
+	radio.setup(player, moment)
 	_wake_up()
 	GameState.emit_quota()
 	DayCycle.reset()

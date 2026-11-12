@@ -29,7 +29,7 @@
   },
   "days": [
     {
-      "quota": 5,
+      "quota": 8,
       "rocket_part": "base",
       "gift": {
         "unlock": [
@@ -54,12 +54,12 @@
       }
     },
     {
-      "quota": 10,
+      "quota": 15,
       "rocket_part": "engine",
       "fact": "FACT_2"
     },
     {
-      "quota": 20,
+      "quota": 25,
       "rocket_part": "tank",
       "fact": "FACT_3"
     },

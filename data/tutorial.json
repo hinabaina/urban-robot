@@ -9,7 +9,8 @@
       {"text": "TUT_STORAGE", "done": {"event": "early_gift"}, "target": {"marker": "Storage"}},
       {"text": "TUT_D1_DRILL", "done": {"event": "placed:drill"}, "target": {"cell": [39, 11]}},
       {"text": "TUT_D1_FURNACE", "done": {"event": "placed:furnace"}, "target": {"cell": [45, 11]}},
-      {"text": "TUT_D1_BELT", "done": {"event": "placed:conveyor"}, "target": {"cell": [42, 11]}},
+      {"text": "TUT_D1_BELT", "done": {"event": "belt_into:furnace"}, "target": {"cell": [42, 11]}},
+      {"text": "TUT_D1_BELT2", "done": {"event": "belt_into:storage"}, "target": {"cell": [48, 11]}},
       {"text": "TUT_D1_FUEL", "done": {"storage": {"ingot": 2}}, "target": {"cell": [45, 11]}},
       {"text": "TUT_GOAL", "done": {"timer": 10}}
     ]

@@ -59,4 +59,4 @@ func _data(t: TestCase) -> void:
 	var total := 0
 	for day in GameConfig.days()["days"]:
 		total += int(day["quota"])
-	t.equal(total, 120, "сумма квот за 5 дней")
+	t.equal(total, 133, "сумма квот за 5 дней")
