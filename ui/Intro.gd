@@ -23,6 +23,7 @@ const SUB_SIZE := 28
 const COUNTER_SIZE := 30
 
 var _stage: Node2D
+var _view_box: SubViewportContainer
 var _subtitle: Label
 var _counter: Label
 var _days: Label
@@ -97,7 +98,7 @@ func skip() -> void:
 	var tween := create_tween()
 	tween.tween_property(_black, "color:a", 1.0, OUT_DARKEN)
 	tween.tween_callback(func() -> void:
-		_stage.get_parent().get_parent().visible = false
+		_view_box.visible = false
 		for label in [_subtitle, _counter, _days, _title]:
 			label.visible = false
 		finished.emit()
@@ -166,19 +167,35 @@ func _update_scene(index: int, p: float) -> void:
 # --- Сборка ------------------------------------------------------------------
 
 func _build_view() -> void:
-	var container := SubViewportContainer.new()
-	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	container.stretch = true
-	container.stretch_shrink = 4
-	container.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(container)
+	var back := ColorRect.new()          # под картинкой всегда чёрное, игра сквозь края не просвечивает
+	back.color = Color.BLACK
+	back.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(back)
+	# Холст всегда 320x180: сцены нарисованы под этот размер. Растягиваем его так, чтобы он закрыл
+	# весь экран при любых пропорциях окна (лишнее по краям обрезается), а не оставлял пустые полосы.
+	_view_box = SubViewportContainer.new()
+	_view_box.stretch = false
+	_view_box.size = Vector2(VIEW_SIZE)
+	_view_box.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_view_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_view_box)
 	var view := SubViewport.new()
 	view.size = VIEW_SIZE
 	view.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
-	container.add_child(view)
+	_view_box.add_child(view)
 	_stage = IntroStage.new()
 	view.add_child(_stage)
+	resized.connect(_fit_view)
+	_fit_view()
+
+
+## Картинка ролика закрывает весь экран: масштаб по большей стороне, по центру.
+func _fit_view() -> void:
+	var screen := size if size.x > 0.0 else get_viewport_rect().size
+	var k := maxf(screen.x / VIEW_SIZE.x, screen.y / VIEW_SIZE.y)
+	_view_box.scale = Vector2(k, k)
+	_view_box.position = ((screen - Vector2(VIEW_SIZE) * k) * 0.5).floor()
 
 
 func _build_text() -> void:
@@ -209,6 +226,7 @@ func _build_text() -> void:
 	for label in [_counter, _days]:
 		label.visible = false
 	var hold := HoldSkip.new()          # пропуск только удержанием Пробела: случайный клик ролик не обрывает
+	hold.at_top = true                  # сверху, чтобы не закрывать субтитры
 	hold.skipped.connect(skip)
 	add_child(hold)
 	_black = ColorRect.new()
