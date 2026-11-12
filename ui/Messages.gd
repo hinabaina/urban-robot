@@ -18,6 +18,7 @@ var _reason: Label
 var _night: ColorRect
 var _toast_tween: Tween
 var _banner_tween: Tween
+var _quota_have := -1          # сколько слитков было на складе при прошлом сигнале
 @onready var _hint_of_phase := {DayCycle.Phase.DRONE: "HINT_DRONE", DayCycle.Phase.EVENING: "HINT_EVENING",
 	DayCycle.Phase.NIGHT: "HINT_NIGHT"}
 
@@ -37,6 +38,8 @@ func setup(build: Node) -> void:
 	_toast.modulate.a = 0.0
 	GameState.notice.connect(_on_notice)
 	GameState.day_settled.connect(_on_settled)
+	GameState.gift_arrived.connect(_on_gift)
+	GameState.quota_changed.connect(_on_quota)
 	DayCycle.phase_changed.connect(_on_phase)
 	_on_phase(DayCycle.phase)
 
@@ -69,6 +72,24 @@ func _on_settled(result: Dictionary) -> void:
 	_banner.add_theme_color_override("font_color", UiKit.GOOD if result["ok"] else UiKit.BAD)
 	_banner_tween = _flash(_banner, _banner_tween, BANNER_TIME)
 	Audio.play("quota_ok" if result["ok"] else "quota_fail")
+
+
+## Посылка дрона посреди дня: чертежи первых машин.
+func _on_gift(_gift: Dictionary) -> void:
+	_banner.text = tr("NOTICE_EARLY_GIFT")
+	_banner.add_theme_color_override("font_color", UiKit.ACCENT)
+	_banner_tween = _flash(_banner, _banner_tween, BANNER_TIME)
+	Audio.play("quota_ok")
+
+
+## Склад только что набрал норму дня: радуем игрока сразу, а не вечером.
+func _on_quota(have: int, need: int) -> void:
+	if _quota_have >= 0 and _quota_have < need and have >= need and DayCycle.phase == DayCycle.Phase.DAY:
+		_banner.text = tr("NOTICE_QUOTA_DONE")
+		_banner.add_theme_color_override("font_color", UiKit.GOOD)
+		_banner_tween = _flash(_banner, _banner_tween, BANNER_TIME)
+		Audio.play("quota_ok")
+	_quota_have = have
 
 
 func _flash(label: Label, old: Tween, hold: float) -> Tween:

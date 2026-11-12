@@ -39,6 +39,12 @@ func work(dt: float) -> bool:
 	return true
 
 
+## Доля готовности слитка 0..1 (для полоски над костром).
+func progress() -> float:
+	var cycle := float(config.get("cycle_seconds", 0.0))
+	return clampf(_seconds / cycle, 0.0, 1.0) if cycle > 0.0 and has_recipe() else 0.0
+
+
 func take_by_hand() -> Array[Item]:
 	var taken := contents()
 	_input.clear()

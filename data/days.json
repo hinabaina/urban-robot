@@ -33,25 +33,29 @@
       "rocket_part": "base",
       "gift": {
         "unlock": [
-          "conveyor",
-          "drill",
-          "furnace"
+          "sprinkler",
+          "harvester"
         ],
         "pockets": {
           "ingot": 5
         }
       },
-      "fact": "FACT_1"
+      "fact": "FACT_1",
+      "early_gift": {
+        "unlock": [
+          "conveyor",
+          "drill",
+          "furnace"
+        ],
+        "pockets": {
+          "ingot": 5,
+          "ore": 24
+        }
+      }
     },
     {
       "quota": 10,
       "rocket_part": "engine",
-      "gift": {
-        "unlock": [
-          "sprinkler",
-          "harvester"
-        ]
-      },
       "fact": "FACT_2"
     },
     {

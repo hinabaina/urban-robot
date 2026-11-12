@@ -5,26 +5,26 @@
       {"text": "TUT_MOVE", "done": {"walked_tiles": 3}},
       {"text": "TUT_SHAFT", "done": {"below_row": 16}, "target": {"cell": [32, 11]}},
       {"text": "TUT_ORE", "done": {"pocket": {"ore": 4}}, "target": {"cell": [33, 16]}},
-      {"text": "TUT_CAMPFIRE_PUT", "done": {"event": "campfire_loaded"}, "target": {"marker": "Campfire"}},
       {"text": "TUT_CAMPFIRE_BLOW", "done": {"event": "campfire_ingot"}, "target": {"marker": "Campfire"}},
-      {"text": "TUT_STORAGE", "done": {"storage": {"ingot": 1}}, "target": {"marker": "Storage"}},
-      {"text": "TUT_FARM", "done": {"event": "watered"}, "target": {"cell": [14, 11]}},
-      {"text": "TUT_GOAL", "done": {"timer": 8}}
+      {"text": "TUT_STORAGE", "done": {"event": "early_gift"}, "target": {"marker": "Storage"}},
+      {"text": "TUT_D1_DRILL", "done": {"event": "placed:drill"}, "target": {"cell": [39, 11]}},
+      {"text": "TUT_D1_FURNACE", "done": {"event": "placed:furnace"}, "target": {"cell": [45, 11]}},
+      {"text": "TUT_D1_BELT", "done": {"event": "placed:conveyor"}, "target": {"cell": [42, 11]}},
+      {"text": "TUT_D1_FUEL", "done": {"storage": {"ingot": 2}}, "target": {"cell": [45, 11]}},
+      {"text": "TUT_GOAL", "done": {"timer": 10}}
     ]
   },
   "2": {
     "steps": [
-      {"text": "TUT_D2_DRILL", "done": {"event": "placed:drill"}, "target": {"cell": [34, 15]}},
-      {"text": "TUT_D2_FURNACE", "done": {"event": "placed:furnace"}},
-      {"text": "TUT_D2_BELT", "done": {"event": "placed:conveyor"}},
-      {"text": "TUT_D2_FUEL", "done": {"timer": 10}}
+      {"text": "TUT_FARM", "done": {"event": "watered"}, "target": {"cell": [14, 11]}},
+      {"text": "TUT_D3_SPRINKLER", "done": {"event": "placed:sprinkler"}, "target": {"cell": [11, 11]}},
+      {"text": "TUT_D3_HARVESTER", "done": {"event": "placed:harvester"}, "target": {"cell": [13, 11]}},
+      {"text": "TUT_D3_LINK", "done": {"timer": 10}}
     ]
   },
   "3": {
     "steps": [
-      {"text": "TUT_D3_SPRINKLER", "done": {"event": "placed:sprinkler"}, "target": {"cell": [11, 11]}},
-      {"text": "TUT_D3_HARVESTER", "done": {"event": "placed:harvester"}, "target": {"cell": [13, 11]}},
-      {"text": "TUT_D3_LINK", "done": {"timer": 10}}
+      {"text": "TUT_DEEP", "done": {"timer": 14}, "target": {"cell": [32, 11]}}
     ]
   }
 }

@@ -95,13 +95,32 @@ func _crop_stage(plot: Vector2i) -> int:
 	return 0
 
 
+## ЛКМ по костру: если он пуст, сам кладёт сырьё из карманов (как E), затем раздувает. Над костром полоска готовности.
 func _blow_campfire(cell: Vector2i, delta: float) -> void:
+	if not Sim.campfire_loaded() and not _load_campfire(cell):
+		_warn("NOTICE_CAMPFIRE_NEED")
+		stopped.emit()
+		return
 	campfire_blown.emit(cell)
-	if Sim.campfire_work(delta):
+	var ready: bool = Sim.campfire_work(delta)
+	progress.emit(cell, 1.0 if ready else Sim.campfire_progress(), "campfire")
+	if ready:
 		if GameState.add_pocket("ingot") == 0:
 			GameState.notify("NOTICE_POCKETS_FULL")
 		GameState.report("campfire_ingot")
 		Audio.play("ingot")
+
+
+func _load_campfire(cell: Vector2i) -> bool:
+	var recipe: Dictionary = _cfg["campfire_recipe"]
+	if not GameState.can_afford(recipe):
+		return false
+	for type in recipe:
+		for i in int(recipe[type]):
+			if Sim.insert(cell, type):
+				GameState.pay({type: 1})
+	GameState.report("campfire_loaded")
+	return Sim.campfire_loaded()
 
 
 func _dig(cell: Vector2i) -> void:

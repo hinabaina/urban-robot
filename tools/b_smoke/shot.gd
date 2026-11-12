@@ -9,7 +9,7 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "shot.png"
 	var wait := float(args[1]) if args.size() > 1 else 1.0
-	get_tree().create_timer(100.0).timeout.connect(func() -> void:
+	get_tree().create_timer(170.0).timeout.connect(func() -> void:
 		print("WATCHDOG: сценарий не завершился")
 		get_tree().quit(1))
 	var scenario: String = args[2] if args.size() > 2 else ""
@@ -114,6 +114,25 @@ func scenario_factory() -> void:
 	await get_tree().create_timer(9.0).timeout
 	print("items: ", Sim.get_items().size(), " furnace: ", MachineCatalog.find(Vector2i(37, 14)))
 	mouse_to_cell(Vector2i(41, 13))           # призрак «нельзя»: земля
+
+
+## Линия первого дня на поверхности: бур на выходе руды -> лента -> печь -> лента -> склад. Аргумент 4 — час суток.
+func scenario_line() -> void:
+	GameState.early_gift_given = true
+	GameState.unlocked.assign(GameConfig.player()["hotbar"])
+	GameState.unlocked_changed.emit()
+	Sim.place_machine("drill", Vector2i(38, 10), Vector2i.RIGHT)
+	Sim.place_machine("furnace", Vector2i(44, 10), Vector2i.RIGHT)
+	for x in [40, 41, 42, 43, 46, 47, 48, 49]:
+		Sim.place_machine("conveyor", Vector2i(x, 11), Vector2i.RIGHT)
+	for i in 5:
+		Sim.insert(Vector2i(44, 10), "grain")
+	main.get_node("Player").global_position = TileCatalog.cell_center(Vector2i(43, 8))
+	var args := OS.get_cmdline_user_args()
+	if args.size() > 3:
+		DayCycle.hour = float(args[3])
+	DayCycle.set_user_speed(2.0)
+	await get_tree().create_timer(14.0).timeout
 
 
 ## Сутки целиком: слитки на склад, дрон, вечер, сон, ночь, отчёт, утро.

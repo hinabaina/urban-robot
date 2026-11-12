@@ -35,13 +35,22 @@ func _collect_claims(moved: Dictionary) -> Dictionary:
 		var item := source.peek_output()
 		if item == null or moved.has(item):
 			continue
-		var target: Machine = _sim.grid.machine_at(source.output_cell())
-		if target == null or target == source or not target.can_accept(item, source.dir):
+		var target := _target(source, item)
+		if target == null:
 			continue
 		if not claims.has(target):
 			claims[target] = []
 		claims[target].append(source)
 	return claims
+
+
+## Куда источник может отдать предмет: первая из клеток у выходной стороны, где стоит машина, готовая его принять.
+func _target(source: Machine, item: Item) -> Machine:
+	for cell in source.output_cells():
+		var target: Machine = _sim.grid.machine_at(cell)
+		if target != null and target != source and target.can_accept(item, source.dir):
+			return target
+	return null
 
 
 ## Слияние потоков: если желающих несколько, берём не того, у кого взяли в прошлый раз.

@@ -41,11 +41,13 @@ static func pocket_limit(type: String) -> int:
 	return int(player()["pocket_limits"].get(type, 0))
 
 
-## День (1..N), утром которого чертёж уже доступен; 0 — с начала игры; -1 — нигде не выдаётся.
+## День (1..N), в который чертёж уже доступен; 0 — с начала игры; -1 — нигде не выдаётся.
 static func unlock_day(id: String) -> int:
 	if days()["start"]["unlocked"].has(id):
 		return 0
 	for i in total_days():
+		if days()["days"][i].get("early_gift", {}).get("unlock", []).has(id):
+			return i + 1          # посылка посреди дня: чертёж доступен уже в этот день
 		if days()["days"][i].get("gift", {}).get("unlock", []).has(id):
 			return i + 2
 	return -1

@@ -27,6 +27,7 @@ func teleport(cell: Vector2i) -> void:
 func scenario_checks() -> void:
 	player = main.get_node("Player")
 	world = main.get_node("World")
+	GameState.early_gift_given = true   # посылку дня 1 проверяет scenario_tutorial; здесь она мешала бы счёту карманов
 	await _movement()
 	await _digging()
 	await _hands()
@@ -93,6 +94,14 @@ func _hands() -> void:
 	check("campfire gives ingot after 3 s", GameState.pockets["ingot"] == 1, GameState.pockets)
 	await press(Actions.INTERACT)
 	check("campfire refuses without ore", GameState.pockets["grain"] == 9)
+	GameState.add_pocket("ore", 2)
+	await click(Actions.USE, 1.5)
+	check("LMB alone loads the campfire and shows progress", GameState.pockets["ore"] == 0 and Sim.campfire_loaded()
+		and Sim.campfire_progress() > 0.3, [GameState.pockets, Sim.campfire_progress()])
+	await click(Actions.USE, 1.8)
+	check("LMB alone smelts an ingot (no E needed)", GameState.pockets["ingot"] == 2 and GameState.pockets["grain"] == 8, GameState.pockets)
+	GameState.pay({"ingot": 1})
+	GameState.add_pocket("grain")
 	var storage: Vector2i = world.marker_cell("Storage")
 	await teleport(storage + Vector2i(-1, 1))
 	mouse_to_cell(storage + Vector2i(-6, -4))
@@ -196,7 +205,7 @@ func _day_end() -> void:
 		and main.get_node("UI/EndScreen").visible and player.frozen, [DayCycle.phase, GameState.trust])
 
 
-## Обучение дня 1 настоящим вводом от первого шага до последнего.
+## Обучение дня 1 настоящим вводом от первого шага до последнего: руками один слиток, потом своя линия.
 func scenario_tutorial() -> void:
 	player = main.get_node("Player")
 	world = main.get_node("World")
@@ -213,24 +222,63 @@ func scenario_tutorial() -> void:
 	var fire: Vector2i = world.marker_cell("Campfire")
 	await teleport(fire + Vector2i(-1, 0))
 	mouse_to_cell(fire)
-	await press(Actions.INTERACT)
-	check("step 4 done after loading campfire", step.call() == 4, step.call())
 	await click(Actions.USE, 3.2)
-	check("step 5 done with ingot", step.call() == 5, step.call())
+	check("step 4 done: LMB on campfire gives an ingot", step.call() == 4, [step.call(), GameState.pockets])
+	check("machines are still locked", not GameState.is_unlocked("drill"))
 	await teleport(world.marker_cell("Storage") + Vector2i(-1, 1))
 	await press(Actions.INTERACT)
 	await wait(0.1)
-	check("step 6 done after storage", step.call() == 6, step.call())
-	GameState.set_water(3)
-	await teleport(Vector2i(13, 11))
-	await press(Actions.slot(1))
-	mouse_to_cell(Vector2i(14, 12))
-	await click(Actions.USE, 0.5)
-	check("step 7 done after watering", step.call() == 7, step.call())
+	check("step 5 done: first ingot in storage brings the parcel", step.call() == 5 and GameState.is_unlocked("drill")
+		and GameState.is_unlocked("furnace") and GameState.is_unlocked("conveyor"), [step.call(), GameState.unlocked])
+	check("parcel has parts for the first line", GameState.pockets["ingot"] == 5 and GameState.pockets["ore"] >= 24, GameState.pockets)
+	await teleport(Vector2i(41, 11))
+	await press(Actions.slot(5))
+	mouse_to_world(TileCatalog.cell_center(Vector2i(38, 10)) + Vector2(4, 4))   # не на границе клеток призрака 2x2
+	await press(Actions.PLACE)
+	check("step 6 done: drill stands on the surface outcrop", step.call() == 6 and MachineCatalog.find(Vector2i(38, 10)).get("type") == "drill",
+		[step.call(), Sim.can_place("drill", Vector2i(38, 10), Vector2i.RIGHT)])
+	await press(Actions.slot(6))
+	mouse_to_world(TileCatalog.cell_center(Vector2i(44, 10)) + Vector2(4, 4))
+	await press(Actions.PLACE)
+	check("step 7 done: furnace placed", step.call() == 7, step.call())
+	await press(Actions.slot(4))
+	await _drag_belt(40, 43)
+	check("step 8 done after the first conveyor", step.call() == 8, step.call())
+	await teleport(Vector2i(47, 11))
+	await _drag_belt(46, 49)
+	mouse_to_cell(Vector2i(45, 11))
+	await press(Actions.INTERACT)
+	check("E puts grain into the furnace", GameState.pockets["grain"] < 9, GameState.pockets)
 	check("clock is slowed during tutorial", is_equal_approx(DayCycle.clock_scale, 0.5))
-	await wait(8.3)
+	var seconds := 0.0
+	while Sim.storage_count("ingot") < 2 and seconds < 40.0:
+		await wait(1.0)
+		seconds += 1.0
+	check("step 9 done: the line delivers an ingot by itself within 40 s", step.call() == 9 and Sim.storage_count("ingot") >= 2,
+		[step.call(), Sim.storage_count("ingot"), seconds])
+	await wait(10.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
+	while Sim.storage_count("ingot") < GameState.quota() and seconds < 120.0:
+		await wait(1.0)
+		seconds += 1.0
+	check("day 1 quota is met by the line", Sim.storage_count("ingot") >= GameState.quota(), [Sim.storage_count("ingot"), seconds, DayCycle.clock_text()])
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+## Протянуть ленту по земле от клетки x0 до x1 зажатой ПКМ.
+func _drag_belt(x0: int, x1: int) -> void:
+	mouse_to_cell(Vector2i(x0, 11))
+	await get_tree().process_frame
+	var event := InputEventAction.new()
+	event.action = Actions.PLACE
+	event.pressed = true
+	Input.parse_input_event(event)
+	Input.action_press(Actions.PLACE)
+	for x in range(x0 + 1, x1 + 1):
+		await wait(0.1)
+		mouse_to_cell(Vector2i(x, 11))
+	await wait(0.1)
+	Input.action_release(Actions.PLACE)
 
 
 ## Вступительный ролик (часть A): идёт, синхронизирован с голосом, пропускается и сообщает об окончании.
