@@ -94,6 +94,7 @@ func _physics_process(delta: float) -> void:
 	if side != 0.0 and not working:
 		facing = 1 if side > 0.0 else -1
 	move_and_slide()
+	_keep_inside_world()
 	_animate(delta, supported)
 	queue_redraw()
 
@@ -145,3 +146,12 @@ func _animate(delta: float, supported: bool) -> void:
 		tool_sprite.scale.x = facing
 		tool_sprite.position.x = 4.0 * facing
 		tool_sprite.rotation = (0.2 + 0.7 * absf(sin(Time.get_ticks_msec() * 0.012))) * facing
+
+
+## Невидимые стены по бокам карты: дальше края мира не уйти и за него не упасть.
+func _keep_inside_world() -> void:
+	var half := 5.0
+	var right := float(TileCatalog.MAP_SIZE.x * TileCatalog.TILE) - half
+	if global_position.x < half or global_position.x > right:
+		global_position.x = clampf(global_position.x, half, right)
+		velocity.x = 0.0
