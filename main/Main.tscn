@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://main/Main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/World.tscn" id="2"]
@@ -26,6 +26,7 @@
 
 [ext_resource type="Script" path="res://view/Decor.gd" id="23"]
 [ext_resource type="Script" path="res://view/Lights.gd" id="24"]
+[ext_resource type="Script" path="res://view/Darkness.gd" id="25"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
@@ -61,6 +62,9 @@ script = ExtResource("9")
 
 [node name="Lights" type="Node2D" parent="."]
 script = ExtResource("24")
+
+[node name="Darkness" type="Node2D" parent="."]
+script = ExtResource("25")
 
 [node name="Juice" type="Node2D" parent="."]
 script = ExtResource("22")

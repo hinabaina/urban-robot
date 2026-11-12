@@ -12,7 +12,8 @@
 
 | Шрифт | Файл | Автор | Лицензия |
 |---|---|---|---|
-| Tektur | `assets/fonts/Tektur.ttf` | The Tektur Project Authors (Adam Jagosz) | SIL Open Font License 1.1 (`assets/fonts/OFL-Tektur.txt`) |
+| DALA Pixel (основной шрифт интерфейса) | `assets/fonts/DalaPixel.ttf` | на основе Fusion Pixel 12px (© 2022 TakWolf); команда дорисовала 18 казахских букв скриптом `tools/font/build_font.py` и переименовала шрифт, как требует OFL | SIL Open Font License 1.1 (`assets/fonts/OFL-FusionPixel.txt`) |
+| Tektur (запасной для редких символов) | `assets/fonts/Tektur.ttf` | The Tektur Project Authors (Adam Jagosz) | SIL Open Font License 1.1 (`assets/fonts/OFL-Tektur.txt`) |
 | Press Start 2P | `assets/fonts/PressStart2P-Regular.ttf` | The Press Start 2P Project Authors (CodeMan38) | SIL Open Font License 1.1 (`assets/fonts/OFL-PressStart2P.txt`) |
 
 Оба шрифта взяты из каталога Google Fonts; покрытие русских и казахских букв проверено.

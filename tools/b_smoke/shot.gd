@@ -238,3 +238,13 @@ func scenario_xray() -> void:
 func scenario_menu_kk() -> void:
 	Loc.setup("kk")
 	main.get_node("UI/MainMenu").open()
+
+
+## Поверхность у юрты: день или ночь (4-й аргумент — час).
+func scenario_surface() -> void:
+	var args := OS.get_cmdline_user_args()
+	DayCycle.hour = float(args[3]) if args.size() > 3 else 9.0
+	var player: CharacterBody2D = main.get_node("Player")
+	player.global_position = TileCatalog.cell_center(Vector2i(24, 11)) - Vector2(0, 2)
+	await get_tree().physics_frame
+	player.camera.snap()

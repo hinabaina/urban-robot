@@ -5,6 +5,8 @@ const SLOT := 62
 const COST_ICON := 16
 const LOCKED_TINT := Color(0.35, 0.37, 0.45)
 const EDGE := 8
+const HOVER_SCALE := 1.08
+const SELECT_SCALE := 1.18
 
 var _build: Node              # BuildController
 var _panels: Array[PanelContainer] = []
@@ -15,7 +17,8 @@ var _badges: Array[Label] = []     # число в углу слота: вода
 var _tip: PanelContainer
 var _tip_title: Label
 var _tip_text: Label
-var _was_open: Array[bool] = []    # какие слоты были открыты при прошлой перерисовке
+var _was_open: Array[bool] = []
+var _last_selected := -1    # какие слоты были открыты при прошлой перерисовке
 var _normal := UiKit.box("ui_slot", 4)
 var _selected := UiKit.box("ui_slot_selected", 4)
 
@@ -48,16 +51,18 @@ func _make_slot(index: int) -> Control:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.gui_input.connect(_on_slot_input.bind(index))
 	panel.mouse_entered.connect(_show_tip.bind(index))
+	panel.mouse_entered.connect(_hover.bind(index, true))
 	panel.mouse_exited.connect(func() -> void: _tip.visible = false)
+	panel.mouse_exited.connect(_hover.bind(index, false))
 	column.add_child(panel)
 	var icon := UiKit.icon(Sprites.slot(id))
 	panel.add_child(icon)
-	var key := UiKit.label(str(index + 1), UiKit.SMALL_SIZE, UiKit.MUTED)
+	var key := UiKit.label(str(index + 1), UiKit.TINY_SIZE, UiKit.MUTED)
 	key.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	panel.add_child(key)
 	var lock := UiKit.icon(Sprites.icon("lock"))
 	panel.add_child(lock)
-	var badge := UiKit.label("", UiKit.SMALL_SIZE, UiKit.WATER)
+	var badge := UiKit.label("", UiKit.TINY_SIZE, UiKit.WATER)
 	badge.size_flags_vertical = Control.SIZE_SHRINK_END
 	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	panel.add_child(badge)
@@ -105,7 +110,27 @@ func _show_tip(index: int) -> void:
 	_tip.global_position = Vector2(x, slot_rect.position.y - _tip.size.y - EDGE)
 
 
+## Слот под курсором чуть подрастает.
+func _hover(index: int, inside: bool) -> void:
+	var panel := _panels[index]
+	panel.pivot_offset = panel.size * 0.5
+	panel.create_tween().tween_property(panel, "scale", Vector2.ONE * (HOVER_SCALE if inside else 1.0), 0.1)
+
+
+## Выбранный слот пружинит, чтобы выбор было видно краем глаза.
+func _bounce(index: int) -> void:
+	var panel := _panels[index]
+	panel.pivot_offset = panel.size * 0.5
+	var tween := panel.create_tween()
+	tween.tween_property(panel, "scale", Vector2.ONE * SELECT_SCALE, 0.07).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "scale", Vector2.ONE, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
+
 func _refresh() -> void:
+	if _build.selected != _last_selected:
+		if _last_selected >= 0:
+			_bounce(_build.selected)
+		_last_selected = _build.selected
 	for i in _panels.size():
 		var id: String = _build.slots[i]
 		var open := GameState.is_unlocked(id)
@@ -132,10 +157,12 @@ func _celebrate(index: int) -> void:
 
 
 func _fill_cost(row: HBoxContainer, cost: Dictionary) -> void:
+	# Убираем старые подписи сразу: queue_free оставлял их до конца кадра, и строка цены на миг удваивалась.
 	for child in row.get_children():
+		row.remove_child(child)
 		child.queue_free()
 	for type in cost:
 		var enough: bool = GameState.pockets.get(type, 0) >= int(cost[type])
-		var count := UiKit.label(" %d" % int(cost[type]), UiKit.SMALL_SIZE, UiKit.TEXT if enough else UiKit.BAD)
+		var count := UiKit.label(" %d" % int(cost[type]), UiKit.TINY_SIZE, UiKit.TEXT if enough else UiKit.BAD)
 		row.add_child(count)
 		row.add_child(UiKit.icon(Sprites.item(type), COST_ICON))

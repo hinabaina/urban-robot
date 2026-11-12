@@ -32,6 +32,10 @@ func _ready() -> void:
 	Sim.machine_state_changed.connect(_on_state)
 
 
+func campfire_glowing() -> bool:
+	return _campfire_lit > 0.0
+
+
 func light_campfire(_cell: Vector2i) -> void:
 	_campfire_lit = CAMPFIRE_GLOW_TIME
 
@@ -67,7 +71,7 @@ func _on_placed(cell: Vector2i, type: String, dir: Vector2i) -> void:
 	add_child(sprite)
 	var icon := Sprite2D.new()
 	icon.visible = false
-	icon.z_index = 3
+	icon.z_index = 6       # над темнотой шахты: значок простоя важнее всего там, где темно
 	icon.position = sprite.position - Vector2(0, sprite.texture.get_height() * 0.5 + ICON_GAP)
 	add_child(icon)
 	if GameConfig.player()["directional"].has(type) and type != "conveyor":

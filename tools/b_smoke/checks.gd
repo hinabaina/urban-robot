@@ -20,7 +20,7 @@ func teleport(cell: Vector2i) -> void:
 	player.global_position = TileCatalog.cell_center(cell) - Vector2(0, 2)
 	player.velocity = Vector2.ZERO
 	await get_tree().physics_frame
-	player.camera.reset_smoothing()
+	player.camera.snap()
 	await wait(0.25)
 
 

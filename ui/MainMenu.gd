@@ -28,7 +28,7 @@ func open() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list.add_child(title)
 	for key in STORY:
-		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE + 2, UiKit.TEXT)
+		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE, UiKit.TEXT)
 		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		list.add_child(line)

@@ -3,7 +3,17 @@
 extends Node2D
 
 const SURFACE_ROW := 12            # строка верхнего слоя земли (как SURFACE_Y в Background)
-const SHADE_ALPHA := 0.34          # насколько темнее самый низ карты
+const MAST_X := 22
+const MAST_HEIGHT := 46.0
+const CRATE_XS: Array[int] = [52, 53]
+const FENCE_XS: Array[int] = [1, 2, 3, 21, 22]
+const WOOD := Color("a8743e")
+const WOOD_DARK := Color("5a3a22")
+const BARREL := Color("8a5a32")
+const METAL := Color("9aa8bd")
+const METAL_DARK := Color("4a5468")
+const WIRE := Color(0.25, 0.25, 0.3, 0.6)
+const LANTERNS: Array[Vector2i] = [Vector2i(31, 14), Vector2i(31, 17)]   # те же, что светят в Darkness
 const SMOKE_AT := Vector2(31, 2)   # дымоход юрты относительно её левого верхнего угла
 const GRASS := Color("7c9a3a")
 const GRASS_DARK := Color("5d7a2c")
@@ -19,12 +29,23 @@ var world: Node2D     # WorldLoader, задаёт Main
 var _spots := {}      # столбец -> вид украшения; только там, где сейчас трава и над ней пусто
 var _dirty := true
 var _wind: CPUParticles2D
+var _fireflies: CPUParticles2D
 
 
 func _ready() -> void:
 	Sim.tile_changed.connect(func(_cell: Vector2i, _kind: int) -> void: _dirty = true)
 	Sim.machine_placed.connect(func(_cell: Vector2i, _type: String, _dir: Vector2i) -> void: _dirty = true)
 	Sim.machine_removed.connect(func(_cell: Vector2i) -> void: _dirty = true)
+	# Светлячки над степью: видны только в сумерках и ночью.
+	_fireflies = _particles(Color(0.85, 1.0, 0.45, 0.9), 14, 5.0)
+	_fireflies.direction = Vector2(0, -1)
+	_fireflies.spread = 180.0
+	_fireflies.initial_velocity_min = 3.0
+	_fireflies.initial_velocity_max = 9.0
+	_fireflies.gravity = Vector2.ZERO
+	_fireflies.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	_fireflies.emission_rect_extents = Vector2(170, 22)
+	_fireflies.scale_amount_max = 1.0
 	_wind = _particles(Color(0.96, 0.93, 0.8, 0.55), 12, 7.0)
 	_wind.direction = Vector2(1, -0.1)
 	_wind.spread = 12.0
@@ -68,6 +89,11 @@ func _process(_delta: float) -> void:
 	var camera := get_viewport().get_camera_2d()
 	if camera:
 		_wind.position = Vector2(camera.get_screen_center_position().x - 120.0, SURFACE_ROW * TileCatalog.TILE - 60.0)
+		_fireflies.position = Vector2(camera.get_screen_center_position().x, SURFACE_ROW * TileCatalog.TILE - 26.0)
+	var background := get_node_or_null("../Background")
+	if background:
+		var tint: Color = background.world_tint()
+		_fireflies.modulate.a = clampf((0.75 - tint.get_luminance()) * 3.0, 0.0, 1.0)
 	if _dirty and world:
 		_dirty = false
 		_collect()
@@ -100,11 +126,10 @@ func _under_sprite(cell: Vector2i) -> bool:
 
 
 func _draw() -> void:
-	var size := Vector2(TileCatalog.MAP_SIZE * TileCatalog.TILE)
-	var top := float((SURFACE_ROW + 1) * TileCatalog.TILE)
-	# Чем глубже, тем темнее: шахта читается как глубина, а не как плоская стена.
-	draw_polygon(PackedVector2Array([Vector2(0, top), Vector2(size.x, top), size, Vector2(0, size.y)]),
-		PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0.05, SHADE_ALPHA), Color(0, 0, 0.05, SHADE_ALPHA)]))
+	# Глубину теперь показывает Darkness (шейдер со светом); здесь фонари на стенке старой шахты.
+	for cell: Vector2i in LANTERNS:
+		_lantern(Vector2(cell) * TileCatalog.TILE)
+	_props()
 	var ground := float(SURFACE_ROW * TileCatalog.TILE)
 	var time := Time.get_ticks_msec() * 0.001
 	for x: int in _spots:
@@ -130,6 +155,75 @@ func _draw() -> void:
 			8:
 				for i in 4:
 					draw_line(base + Vector2(2, 0), base + Vector2(-2 + i * 3 + sway * 0.5, -5 - i % 2), BUSH, 1.0)
+
+
+## Обжитая станция: мачта рации у юрты, ящики и бочка у склада, заборчик у колодца.
+func _props() -> void:
+	var ground := float(SURFACE_ROW * TileCatalog.TILE)
+	var busy := _busy_cells()
+	_mast(Vector2(MAST_X * TileCatalog.TILE + 8, ground))
+	for x in CRATE_XS:
+		if not busy.has(Vector2i(x, SURFACE_ROW - 1)):
+			_crates(Vector2(x * TileCatalog.TILE, ground), x)
+	for x in FENCE_XS:
+		if not busy.has(Vector2i(x, SURFACE_ROW - 1)) and world.kind_at(Vector2i(x, SURFACE_ROW)) != "":
+			_fence(Vector2(x * TileCatalog.TILE, ground))
+
+
+func _busy_cells() -> Dictionary:
+	var busy := {}
+	for machine in Sim.get_machines():
+		for cell in MachineCatalog.cells(machine.get("type"), machine.get("cell")):
+			busy[cell] = true
+	return busy
+
+
+## Мачта рации: решётчатая стойка, растяжки и мигающий красный огонёк (по ней звонят Айша и диспетчер).
+func _mast(base: Vector2) -> void:
+	var top := base.y - MAST_HEIGHT
+	draw_line(base + Vector2(-6, 0), Vector2(base.x, top + 6), WIRE, 1.0)
+	draw_line(base + Vector2(6, 0), Vector2(base.x, top + 6), WIRE, 1.0)
+	draw_rect(Rect2(base.x - 1, top, 3, MAST_HEIGHT), METAL_DARK)
+	draw_rect(Rect2(base.x, top, 1, MAST_HEIGHT), METAL)
+	for y in range(int(top) + 4, int(base.y), 5):
+		draw_rect(Rect2(base.x - 2, y, 5, 1), METAL_DARK)
+	draw_rect(Rect2(base.x - 4, top + 2, 9, 1), METAL)
+	var on := fmod(Time.get_ticks_msec() * 0.001, 1.6) < 0.5
+	draw_rect(Rect2(base.x - 1, top - 2, 3, 2), Color("ff5a4a") if on else Color("6b2a2a"))
+	if on:
+		draw_rect(Rect2(base.x - 2, top - 3, 5, 4), Color(1.0, 0.35, 0.3, 0.25))
+
+
+func _crates(base: Vector2, x: int) -> void:
+	if x % 2 == 0:
+		draw_rect(Rect2(base.x + 1, base.y - 10, 11, 10), WOOD_DARK)
+		draw_rect(Rect2(base.x + 2, base.y - 9, 9, 8), WOOD)
+		draw_line(Vector2(base.x + 2, base.y - 9), Vector2(base.x + 10, base.y - 2), WOOD_DARK, 1.0)
+		draw_rect(Rect2(base.x + 4, base.y - 16, 7, 6), WOOD_DARK)
+		draw_rect(Rect2(base.x + 5, base.y - 15, 5, 4), WOOD)
+	else:
+		draw_rect(Rect2(base.x + 3, base.y - 12, 9, 12), WOOD_DARK)
+		draw_rect(Rect2(base.x + 4, base.y - 11, 7, 10), BARREL)
+		draw_rect(Rect2(base.x + 3, base.y - 9, 9, 1), METAL)
+		draw_rect(Rect2(base.x + 3, base.y - 4, 9, 1), METAL)
+
+
+func _fence(base: Vector2) -> void:
+	for dx in [2, 13]:
+		draw_rect(Rect2(base.x + dx, base.y - 9, 2, 9), WOOD_DARK)
+		draw_rect(Rect2(base.x + dx, base.y - 9, 1, 8), WOOD)
+	draw_rect(Rect2(base.x, base.y - 7, 16, 1), WOOD)
+	draw_rect(Rect2(base.x, base.y - 4, 16, 1), WOOD)
+
+
+## Фонарь на крюке: тёплое стекло, тёмная оправа.
+func _lantern(at: Vector2) -> void:
+	var flicker := 0.85 + 0.15 * sin(Time.get_ticks_msec() * 0.013 + at.y)
+	draw_rect(Rect2(at.x + 9, at.y + 3, 5, 1), Color("1a1423"))
+	draw_rect(Rect2(at.x + 9, at.y + 3, 1, 3), Color("1a1423"))
+	draw_rect(Rect2(at.x + 7, at.y + 6, 5, 7), Color("1a1423"))
+	draw_rect(Rect2(at.x + 8, at.y + 7, 3, 5), Color("ffcf6b") * flicker)
+	draw_rect(Rect2(at.x + 9, at.y + 8, 1, 2), Color("fff3c4"))
 
 
 func _tuft(base: Vector2, sway: float, height: int) -> void:

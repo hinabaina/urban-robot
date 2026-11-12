@@ -16,6 +16,21 @@ def box(border, fill=FILL, inner=None, size=16):
     return img
 
 
+def wood_box(fill, fill_hi, size=16):
+    """Уютная рамка в духе Stardew Valley: тёмный контур, деревянный борт со светлой гранью, светлое поле."""
+    img = new(size, size)
+    rect(img, 1, 0, size - 2, size, "K"); rect(img, 0, 1, size, size - 2, "K")
+    rect(img, 1, 1, size - 2, size - 2, "w2")
+    rect(img, 1, 1, size - 2, 1, "w4"); rect(img, 1, 1, 1, size - 2, "w3")
+    rect(img, 1, size - 2, size - 2, 1, "w1"); rect(img, size - 2, 1, 1, size - 2, "w1")
+    rect(img, 3, 3, size - 6, size - 6, "w1")
+    rect(img, 4, 4, size - 8, size - 8, fill)
+    rect(img, 4, 4, size - 8, 1, fill_hi)
+    for x, y in ((1, 1), (size - 2, 1), (1, size - 2), (size - 2, size - 2)):
+        px(img, x, y, "K")
+    return img
+
+
 def arrow():
     """Стрелка «выход машины», смотрит вправо, 8x8."""
     img = new(8, 8)
@@ -58,6 +73,10 @@ def build():
     save2x(bar, "ui_bar_fill.png")
     gold = new(8, 8); rect(gold, 0, 0, 8, 8, "n2"); rect(gold, 0, 0, 8, 2, "n3"); rect(gold, 0, 6, 8, 2, "n1")
     save2x(gold, "ui_bar_fill_done.png")
+    save2x(wood_box("#efe2bf", "#f8efd6"), "ui_dialog.png")
+    save2x(wood_box("#7fa7c4", "#9cc0d8"), "ui_portrait.png")
+    save2x(wood_box("#e3d2a6", "#efe2bf"), "ui_choice.png")
+    save2x(wood_box("#f6d27a", "#fbe6a8"), "ui_choice_hover.png")
     save(arrow(), "arrow_out.png")
     save(cracks(), "cracks.png")
 

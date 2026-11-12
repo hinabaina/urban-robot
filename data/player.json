@@ -10,7 +10,6 @@
   "reach_tiles": 4.0,
   "interact_tiles": 2.5,
   "demolish_hold": 0.5,
-  "camera_zoom": 2.0,
   "pocket_limits": {
     "ore": 50,
     "grain": 30,
@@ -57,5 +56,13 @@
   "can_fill_time": 1.0,
   "water_time": 0.3,
   "harvest_time": 0.3,
-  "ripe_stage": 4
+  "ripe_stage": 4,
+  "camera": {
+    "zoom": 4.0,
+    "follow_speed": 7.0,
+    "look_speed": 2.5,
+    "look_up_tiles": 2.0,
+    "look_down_tiles": 2.5,
+    "lead_tiles": 1.0
+  }
 }

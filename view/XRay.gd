@@ -43,7 +43,7 @@ func color_for(stats: Dictionary) -> Color:
 func _draw() -> void:
 	var world := Rect2(Vector2.ZERO, Vector2(TileCatalog.MAP_SIZE * TileCatalog.TILE))
 	draw_rect(world, DIM)
-	var font := UiKit.font()
+	var font := UiKit.title_font()     # пиксельный 8 px: при зуме 4 это 32 px на экране, ровно по сетке
 	for machine in Sim.get_machines():
 		var type: String = machine.get("type")
 		if SKIP.has(type):

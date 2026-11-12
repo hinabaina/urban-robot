@@ -34,7 +34,7 @@ func setup(player: CharacterBody2D, world: Node2D) -> void:
 		add_child(bar)
 	_top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	_bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_title = UiKit.title("", 22, UiKit.ACCENT)
+	_title = UiKit.title("", 24, UiKit.ACCENT)
 	_subtitle = UiKit.label("", UiKit.FONT_SIZE, UiKit.TEXT)
 	for label in [_title, _subtitle]:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

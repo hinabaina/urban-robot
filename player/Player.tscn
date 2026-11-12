@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://player/Player.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/player.png" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://player/ToolUser.gd" id="4"]
 [ext_resource type="Script" path="res://player/Interactor.gd" id="5"]
 [ext_resource type="Script" path="res://player/BuildController.gd" id="6"]
+[ext_resource type="Script" path="res://player/CameraRig.gd" id="7"]
 
 [sub_resource type="RectangleShape2D" id="shape"]
 size = Vector2(10, 20)
@@ -34,8 +35,7 @@ texture = SubResource("tool")
 offset = Vector2(5, -5)
 
 [node name="Camera" type="Camera2D" parent="."]
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
+script = ExtResource("7")
 
 [node name="ToolUser" type="Node" parent="."]
 script = ExtResource("4")
