@@ -25,6 +25,12 @@ func _show(day: int) -> void:
 		var color := UiKit.GOOD if _last_result["ok"] else UiKit.BAD
 		_add(UiKit.label(tr("REPORT_DELIVERED") % [_last_result["taken"], _last_result["quota"]], UiKit.FONT_SIZE, color))
 	_add(UiKit.label(tr("REPORT_AUTOMATION") % int(round(GameState.automation() * 100.0))))
+	if not GameState.bonds.is_empty():   # отношения с героями рации (ui/Radio.gd)
+		var bonds := []
+		for who in GameState.bonds:
+			var value := int(GameState.bonds[who])
+			bonds.append(tr("BOND_UP" if value >= 2 else ("BOND_DOWN" if value < 0 else "BOND_MID")) % tr("BOND_NAME_" + who.to_upper()))
+		_add(UiKit.label(tr("REPORT_BONDS") % ", ".join(bonds), UiKit.SMALL_SIZE, UiKit.WATER))
 	var gift: Array = GameConfig.day(day).get("gift", {}).get("unlock", [])
 	if not gift.is_empty():
 		var names := gift.map(func(id: String) -> String: return tr("SLOT_" + id))

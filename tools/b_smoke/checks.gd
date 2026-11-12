@@ -279,6 +279,7 @@ func scenario_tutorial() -> void:
 	await wait(0.3)
 	check("Aisha reacts to the first hands-free ingot", radio.is_open())
 	await _radio_through(radio)
+	check("then the dispatcher introduces himself", GameState.bonds.has("dispatcher"), GameState.bonds)
 	await wait(10.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
 	mouse_to_cell(Vector2i(45, 11))
@@ -291,15 +292,33 @@ func scenario_tutorial() -> void:
 
 
 ## Протянуть ленту по земле от клетки x0 до x1 зажатой ПКМ.
-## Сюжет по рации: выбор с насосом забирает слитки и меняет следующее утро, буря рвёт ленты, концовка зависит от решений.
+## Сюжет по рации: ответы меняют отношения, выбор с насосом забирает слитки и меняет следующее утро,
+## буря рвёт ленты, развилка с орбитой открывает третий ответ только при доверии обоих и задаёт концовку.
 func scenario_story() -> void:
 	player = main.get_node("Player")
 	world = main.get_node("World")
 	Moment.enabled = false
 	main.get_node("UI/Tutorial")._finish()
 	var radio: Radio = main.get_node("UI/Radio")
+	var shots: String = OS.get_cmdline_user_args()[0].get_base_dir()
 	await wait(0.2)
+	radio.press(-1)                      # первая реплика Айши: допечатать и дальше
+	await wait(0.1)
+	radio.press(-1)
+	await wait(0.1)
+	radio.press(-1)                      # вторая реплика допечатана, под ней три ответа
+	await wait(0.1)
+	get_viewport().get_texture().get_image().save_png(shots + "/radio_reply.png")
+	radio.press(0)                       # «Подниму. Обещаю.»
+	await wait(0.5)
+	check("a reply is remembered by Aisha", GameState.bonds.get("aisha", 0) == 1 and radio.is_open(), GameState.bonds)
+	get_viewport().get_texture().get_image().save_png(shots + "/radio_remember.png")
 	await _radio_through(radio)
+	radio._on_event("auto_ingot")        # первый слиток без рук: Айша радуется, следом выходит на связь диспетчер
+	await wait(0.3)
+	await _radio_through(radio)          # диспетчеру: «Норма будет.»
+	check("the dispatcher calls after the first automatic ingot", GameState.story_done.has("disp"), GameState.story_done)
+	check("the dispatcher is met and pleased", GameState.bonds.get("dispatcher", 0) == 1, GameState.bonds)
 	var storage: Vector2i = world.marker_cell("Storage")
 	for i in 4:
 		Sim.insert(storage, "ingot")
@@ -310,13 +329,16 @@ func scenario_story() -> void:
 	DayCycle.hour = 10.0
 	await wait(0.3)
 	check("pump dilemma is on air", radio.is_open() and GameState.story_done.has("pump"), GameState.story_done)
-	radio.press(-1)                      # допечатать текст
-	await wait(0.1)
-	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/radio_choice.png")
+	for i in 3:                          # Айша просит, диспетчер вмешивается
+		radio.press(-1)
+		await wait(0.1)
+	get_viewport().get_texture().get_image().save_png(shots + "/radio_choice.png")
 	radio.press(0)                       # отдать 3 слитка
 	await wait(0.1)
 	check("helping costs 3 ingots from storage and is remembered", Sim.storage_count("ingot") == 1 and GameState.story_flags.has("pump"),
 		[Sim.storage_count("ingot"), GameState.story_flags])
+	check("helping the village pleases Aisha and angers the dispatcher",
+		GameState.bonds["aisha"] == 3 and GameState.bonds["dispatcher"] == 0, GameState.bonds)
 	await _radio_through(radio)
 	var grain: int = GameState.pockets["grain"]
 	GameState.day = 3
@@ -325,6 +347,10 @@ func scenario_story() -> void:
 	check("next morning the village thanks with grain", radio.is_open() and GameState.pockets["grain"] == grain + 8
 		and not GameState.story_done.has("day3_bad"), [GameState.pockets, GameState.story_done])
 	await _radio_through(radio)
+	DayCycle.hour = 8.6
+	await wait(0.3)
+	await _radio_through(radio)          # диспетчер перед бурей: «Будет. Линия держит.»
+	check("an honest promise wins the dispatcher back", GameState.bonds["dispatcher"] == 1, GameState.bonds)
 	for x in range(40, 46):
 		Sim.place_machine("conveyor", Vector2i(x, 11), Vector2i.RIGHT)
 	DayCycle.hour = 11.0
@@ -337,6 +363,42 @@ func scenario_story() -> void:
 	check("working through the storm tears 3 belts", belts == 3, belts)
 	await _radio_through(radio)
 	check("game runs again after the call", DayCycle.running and not player.frozen)
+	main.get_node("UI/NightReport")._show(3)
+	await wait(0.2)
+	get_viewport().get_texture().get_image().save_png(shots + "/report_bonds.png")
+	main.get_node("UI/NightReport").visible = false
+	var ore: int = GameState.pockets["ore"]
+	GameState.day = 4
+	DayCycle.hour = 8.1
+	await wait(0.3)
+	await _radio_through(radio)          # утро дня 4, затем посылка от довольного диспетчера
+	await wait(0.3)
+	await _radio_through(radio)
+	check("a pleased dispatcher sends ore, no audit", GameState.pockets["ore"] == ore + 8 and GameState.story_done.has("disp_gift")
+		and not GameState.story_done.has("disp_audit"), [GameState.pockets, GameState.story_done])
+	GameState.story_done.append("erzhan")
+	GameState.day = 5
+	DayCycle.hour = 6.5
+	await wait(0.3)
+	await _radio_through(radio)
+	check("a trusted engineer gets help from the village on the last day", GameState.story_done.has("day5_help")
+		and not GameState.story_done.has("day5"), GameState.story_done)
+	DayCycle.hour = 9.0
+	await wait(0.3)
+	for i in 5:                          # приказ диспетчера и ответ Айши
+		radio.press(-1)
+		await wait(0.1)
+	var third: Button = radio._buttons.get_child(2)
+	check("splitting the orbit is open when both sides trust you", radio._buttons.get_child_count() == 3 and not third.disabled,
+		[radio._buttons.get_child_count(), GameState.bonds])
+	get_viewport().get_texture().get_image().save_png(shots + "/radio_orbit.png")
+	radio.press(2)
+	await wait(0.1)
+	await _radio_through(radio)
+	check("the orbit choice is remembered for the ending", GameState.story_flags.has("orbit_both")
+		and main.get_node("UI/EndScreen")._epilogue() == ["END_EPILOGUE_BOTH"], GameState.story_flags)
+	GameState.bonds["dispatcher"] = 0
+	check("without trust the third answer is locked", not radio._can({"bonds": {"aisha": 2, "dispatcher": 1}}))
 	main.get_node("UI/EndScreen").open(true)
 	await wait(0.2)
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)

@@ -20,9 +20,9 @@ func open(won: bool) -> void:
 	var list := UiKit.window(self)
 	_add(list, UiKit.title(tr("END_WIN_TITLE" if won else "END_LOSE_TITLE"), UiKit.TITLE_SIZE, UiKit.GOOD if won else UiKit.BAD))
 	_add(list, UiKit.label(tr("END_WIN_TEXT" if won else "END_LOSE_TEXT")))
-	if won:   # эпилог зависит от того, помогал ли игрок аулу (решения по рации)
-		var helped := int(GameState.story_flags.has("pump")) + int(GameState.story_flags.has("erzhan"))
-		_add(list, UiKit.label(tr("END_EPILOGUE_%d" % helped), UiKit.FONT_SIZE, UiKit.ACCENT))
+	if won:   # эпилог зависит от решений по рации: чью орбиту выбрал игрок и помогал ли он аулу
+		for key in _epilogue():
+			_add(list, UiKit.label(tr(key), UiKit.FONT_SIZE, UiKit.ACCENT))
 	if won:
 		_add_stars(list)
 	_add(list, UiKit.label(tr("END_STATS") % [GameState.delivered_total, int(round(GameState.automation() * 100.0))]))
@@ -33,6 +33,16 @@ func open(won: bool) -> void:
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	list.add_child(button)
 	visible = true
+
+
+func _epilogue() -> Array:
+	var flags := GameState.story_flags
+	if flags.has("orbit_city"):
+		return ["END_EPILOGUE_CITY"]
+	if flags.has("orbit_both"):
+		return ["END_EPILOGUE_BOTH"]
+	var helped := int(flags.has("pump")) + int(flags.has("erzhan"))
+	return ["END_EPILOGUE_%d" % helped] + (["END_ORBIT_AUL"] if flags.has("orbit_aul") else [])
 
 
 ## Три звезды с подписями: полученные — золотые, остальные — тёмные.

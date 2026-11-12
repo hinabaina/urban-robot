@@ -7,7 +7,34 @@
    "who": "aisha",
    "lines": [
     "RADIO_HELLO_1",
-    "RADIO_HELLO_2",
+    {
+     "text": "RADIO_HELLO_2",
+     "choices": [
+      {
+       "text": "RADIO_HELLO_A",
+       "effects": {
+        "bonds": {
+         "aisha": 1
+        }
+       },
+       "reply": "RADIO_HELLO_A_R"
+      },
+      {
+       "text": "RADIO_HELLO_B",
+       "effects": {
+        "bonds": {
+         "aisha": -1
+        }
+       },
+       "reply": "RADIO_HELLO_B_R"
+      },
+      {
+       "text": "RADIO_SILENT",
+       "effects": {},
+       "reply": "RADIO_HELLO_C_R"
+      }
+     ]
+    },
     "RADIO_HELLO_3"
    ]
   },
@@ -20,6 +47,42 @@
    ]
   },
   {
+   "id": "disp",
+   "who": "dispatcher",
+   "lines": [
+    "RADIO_DISP_1",
+    {
+     "text": "RADIO_DISP_2",
+     "choices": [
+      {
+       "text": "RADIO_DISP_A",
+       "effects": {
+        "bonds": {
+         "dispatcher": 1
+        }
+       },
+       "reply": "RADIO_DISP_A_R"
+      },
+      {
+       "text": "RADIO_DISP_B",
+       "effects": {
+        "bonds": {
+         "dispatcher": -1
+        }
+       },
+       "reply": "RADIO_DISP_B_R"
+      },
+      {
+       "text": "RADIO_SILENT",
+       "effects": {},
+       "reply": "RADIO_DISP_C_R"
+      }
+     ]
+    }
+   ],
+   "event": "auto_ingot"
+  },
+  {
    "id": "day2",
    "day": 2,
    "hour": 6.0,
@@ -29,12 +92,54 @@
    ]
   },
   {
+   "id": "disp_late",
+   "who": "dispatcher",
+   "lines": [
+    "RADIO_DISP_1",
+    {
+     "text": "RADIO_DISP_2",
+     "choices": [
+      {
+       "text": "RADIO_DISP_A",
+       "effects": {
+        "bonds": {
+         "dispatcher": 1
+        }
+       },
+       "reply": "RADIO_DISP_A_R"
+      },
+      {
+       "text": "RADIO_DISP_B",
+       "effects": {
+        "bonds": {
+         "dispatcher": -1
+        }
+       },
+       "reply": "RADIO_DISP_B_R"
+      },
+      {
+       "text": "RADIO_SILENT",
+       "effects": {},
+       "reply": "RADIO_DISP_C_R"
+      }
+     ]
+    }
+   ],
+   "day": 2,
+   "hour": 8.0,
+   "unless_done": "disp"
+  },
+  {
    "id": "pump",
    "day": 2,
    "hour": 10.0,
    "who": "aisha",
    "lines": [
-    "RADIO_PUMP"
+    "RADIO_PUMP",
+    {
+     "who": "dispatcher",
+     "text": "RADIO_PUMP_D"
+    }
    ],
    "choices": [
     {
@@ -44,14 +149,35 @@
      },
      "effects": {
       "storage_ingot": -3,
-      "flag": "pump"
+      "flag": "pump",
+      "bonds": {
+       "aisha": 2,
+       "dispatcher": -1
+      }
      },
-     "reply": "RADIO_PUMP_YES_R"
+     "reply": [
+      "RADIO_PUMP_YES_R",
+      {
+       "who": "dispatcher",
+       "text": "RADIO_PUMP_YES_D"
+      }
+     ]
     },
     {
      "text": "RADIO_PUMP_NO",
-     "effects": {},
-     "reply": "RADIO_PUMP_NO_R"
+     "effects": {
+      "bonds": {
+       "aisha": -1,
+       "dispatcher": 1
+      }
+     },
+     "reply": [
+      "RADIO_PUMP_NO_R",
+      {
+       "who": "dispatcher",
+       "text": "RADIO_PUMP_NO_D"
+      }
+     ]
     }
    ]
   },
@@ -78,6 +204,42 @@
    "who": "aisha",
    "lines": [
     "RADIO_DAY3_BAD"
+   ]
+  },
+  {
+   "id": "disp3",
+   "day": 3,
+   "hour": 8.5,
+   "who": "dispatcher",
+   "lines": [
+    {
+     "text": "RADIO_DISP3",
+     "choices": [
+      {
+       "text": "RADIO_DISP3_A",
+       "effects": {
+        "bonds": {
+         "dispatcher": 1
+        }
+       },
+       "reply": "RADIO_DISP3_A_R"
+      },
+      {
+       "text": "RADIO_DISP3_B",
+       "effects": {
+        "bonds": {
+         "dispatcher": -1
+        }
+       },
+       "reply": "RADIO_DISP3_B_R"
+      },
+      {
+       "text": "RADIO_SILENT",
+       "effects": {},
+       "reply": "RADIO_DISP3_C_R"
+      }
+     ]
+    }
    ]
   },
   {
@@ -115,6 +277,38 @@
    ]
   },
   {
+   "id": "disp_gift",
+   "day": 4,
+   "hour": 8.0,
+   "who": "dispatcher",
+   "min": {
+    "dispatcher": 1
+   },
+   "lines": [
+    "RADIO_DISP_GIFT"
+   ],
+   "effects": {
+    "pockets": {
+     "ore": 8
+    }
+   }
+  },
+  {
+   "id": "disp_audit",
+   "day": 4,
+   "hour": 8.0,
+   "who": "dispatcher",
+   "max": {
+    "dispatcher": -2
+   },
+   "lines": [
+    "RADIO_DISP_AUDIT"
+   ],
+   "effects": {
+    "skip_hours": 1
+   }
+  },
+  {
    "id": "erzhan",
    "day": 4,
    "hour": 10.0,
@@ -136,24 +330,135 @@
        "ingot": 3,
        "ore": 5
       },
-      "flag": "erzhan"
+      "flag": "erzhan",
+      "bonds": {
+       "erzhan": 2
+      }
      },
      "reply": "RADIO_ERZHAN_YES_R"
     },
     {
      "text": "RADIO_ERZHAN_NO",
-     "effects": {},
+     "effects": {
+      "bonds": {
+       "erzhan": -1
+      }
+     },
      "reply": "RADIO_ERZHAN_NO_R"
     }
    ]
+  },
+  {
+   "id": "day5_help",
+   "day": 5,
+   "hour": 6.0,
+   "who": "aisha",
+   "min": {
+    "aisha": 3
+   },
+   "lines": [
+    "RADIO_DAY5",
+    "RADIO_DAY5_HELP"
+   ],
+   "effects": {
+    "pockets": {
+     "grain": 6,
+     "ore": 4
+    }
+   }
   },
   {
    "id": "day5",
    "day": 5,
    "hour": 6.0,
    "who": "aisha",
+   "max": {
+    "aisha": 2
+   },
    "lines": [
     "RADIO_DAY5"
+   ]
+  },
+  {
+   "id": "orbit",
+   "day": 5,
+   "hour": 9.0,
+   "who": "dispatcher",
+   "lines": [
+    "RADIO_ORBIT_1",
+    "RADIO_ORBIT_2",
+    {
+     "who": "aisha",
+     "text": "RADIO_ORBIT_3"
+    }
+   ],
+   "choices": [
+    {
+     "text": "RADIO_ORBIT_AUL",
+     "effects": {
+      "flag": "orbit_aul",
+      "storage_ingot": -5,
+      "bonds": {
+       "aisha": 2,
+       "dispatcher": -2
+      }
+     },
+     "reply": [
+      "RADIO_ORBIT_AUL_D",
+      {
+       "who": "aisha",
+       "text": "RADIO_ORBIT_AUL_A"
+      }
+     ]
+    },
+    {
+     "text": "RADIO_ORBIT_CITY",
+     "effects": {
+      "flag": "orbit_city",
+      "pockets": {
+       "ingot": 5
+      },
+      "bonds": {
+       "aisha": -2,
+       "dispatcher": 2
+      }
+     },
+     "reply": [
+      "RADIO_ORBIT_CITY_D",
+      {
+       "who": "aisha",
+       "text": "RADIO_ORBIT_CITY_A"
+      }
+     ]
+    },
+    {
+     "text": "RADIO_ORBIT_BOTH",
+     "need": {
+      "bonds": {
+       "aisha": 2,
+       "dispatcher": 1
+      }
+     },
+     "effects": {
+      "flag": "orbit_both",
+      "bonds": {
+       "aisha": 1,
+       "dispatcher": 1,
+       "erzhan": 1
+      }
+     },
+     "reply": [
+      {
+       "who": "erzhan",
+       "text": "RADIO_ORBIT_BOTH_E"
+      },
+      "RADIO_ORBIT_BOTH_D",
+      {
+       "who": "aisha",
+       "text": "RADIO_ORBIT_BOTH_A"
+      }
+     ]
+    }
    ]
   }
  ]
