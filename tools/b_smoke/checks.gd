@@ -115,8 +115,8 @@ func _farming() -> void:
 	await teleport(Vector2i(17, 11))
 	await press(Actions.slot(2))
 	mouse_to_cell(plot + Vector2i.UP)
-	await press(Actions.PLACE)
-	check("plant seed costs 1 grain", GameState.pockets["grain"] == 8 and _stage(plot) == 1, [GameState.pockets, _stage(plot)])
+	await click(Actions.USE)      # левой кнопкой: на Mac правую нажать неудобно
+	check("LMB plants a seed, seeds are free", GameState.pockets["grain"] == 9 and _stage(plot) == 1, [GameState.pockets, _stage(plot)])
 	await press(Actions.slot(1))
 	await click(Actions.USE, 0.5)
 	check("empty can does not water", not _wet(plot))
@@ -135,7 +135,7 @@ func _farming() -> void:
 	check("crop is ripe after 30 s wet", _stage(plot) == 4, _stage(plot))
 	await press(Actions.slot(0))
 	await click(Actions.USE, 0.45)
-	check("harvest gives 3 grain", GameState.pockets["grain"] == 11 and _stage(plot) == 0, [GameState.pockets, _stage(plot)])
+	check("harvest gives 3 grain", GameState.pockets["grain"] == 12 and _stage(plot) == 0, [GameState.pockets, _stage(plot)])
 	check("farmland is not diggable", world.kind_at(plot) == "farmland")
 
 

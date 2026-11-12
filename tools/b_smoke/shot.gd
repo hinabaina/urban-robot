@@ -135,6 +135,24 @@ func scenario_line() -> void:
 	await get_tree().create_timer(14.0).timeout
 
 
+## Как у Чингиза на второй день: линия стоит, в печи нет зерна, в карманах тоже. Вверху должна быть подсказка.
+func scenario_stuck() -> void:
+	GameState.early_gift_given = true
+	GameState.unlocked.assign(GameConfig.player()["hotbar"])
+	GameState.unlocked_changed.emit()
+	GameState.pockets["grain"] = 0
+	GameState.pockets_changed.emit()
+	main.get_node("UI/Tutorial")._finish()
+	Sim.place_machine("drill", Vector2i(38, 10), Vector2i.RIGHT)
+	Sim.place_machine("furnace", Vector2i(44, 10), Vector2i.RIGHT)
+	for x in [40, 41, 42, 43, 46, 47, 48, 49]:
+		Sim.place_machine("conveyor", Vector2i(x, 11), Vector2i.RIGHT)
+	main.get_node("Player").global_position = TileCatalog.cell_center(Vector2i(43, 8))
+	DayCycle.set_user_speed(2.0)
+	await get_tree().create_timer(6.0).timeout
+	print("goal: ", main.get_node("UI/Messages").goal_text())
+
+
 ## Сутки целиком: слитки на склад, дрон, вечер, сон, ночь, отчёт, утро.
 func scenario_day() -> void:
 	var out_dir: String = OS.get_cmdline_user_args()[0].get_base_dir()

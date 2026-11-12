@@ -14,6 +14,8 @@ var dir_index := 0
 var ghost := {}              # {type, cell, dir, ok, reason} или пусто
 
 var _placing := false
+var _place_action := Actions.PLACE   # какой кнопкой тянем постройку
+var _last_plant_warn := Vector2i(-999, -999)
 var _last_cell := Vector2i(-999, -999)
 
 @onready var player: CharacterBody2D = get_parent()
@@ -65,18 +67,40 @@ func _unhandled_input(event: InputEvent) -> void:
 		dir_index = (dir_index + 1) % DIRS.size()
 		Audio.play("select")
 	elif event.is_action_pressed(Actions.PLACE):
-		_placing = true
-		_last_cell = Vector2i(-999, -999)
-		_try_place(true)
+		_start_placing(Actions.PLACE, true)
+	elif event.is_action_pressed(Actions.USE) and _left_click_builds():
+		# На Mac правую кнопку нажать неудобно: с семенами или машиной в руке ЛКМ тоже ставит и сажает.
+		_start_placing(Actions.USE, MachineCatalog.find(TileCatalog.cell_at(get_global_mouse_position())).is_empty())
+
+
+func _start_placing(action: StringName, loud: bool) -> void:
+	_placing = true
+	_place_action = action
+	_last_cell = Vector2i(-999, -999)
+	_try_place(loud)
+
+
+## ЛКМ ставит, если в руке семена или машина, а под курсором нет спелой грядки (её ЛКМ собирает).
+func _left_click_builds() -> bool:
+	var id := selected_id()
+	if id != "seed" and not MachineCatalog.is_machine(id):
+		return false
+	var cell := TileCatalog.cell_at(get_global_mouse_position())
+	for crop in Sim.get_crops():
+		if crop.get("cell") in [cell, cell + Vector2i.DOWN] and id != "seed":
+			return false
+	return true
 
 
 func _process(_delta: float) -> void:
 	_update_ghost()
-	if _placing and not Input.is_action_pressed(Actions.PLACE):
+	if _placing and not Input.is_action_pressed(_place_action):
 		_placing = false
 	# Протяжка с зажатой ПКМ: удобно тянуть конвейеры и лестницы.
 	if _placing and not ghost.is_empty() and ghost["cell"] != _last_cell and MachineCatalog.size(ghost["type"]) == Vector2i.ONE:
 		_try_place(false)
+	elif _placing and selected_id() == "seed":
+		_plant()          # протяжкой можно засеять всю пашню
 	queue_redraw()
 
 
@@ -99,7 +123,7 @@ func _update_ghost() -> void:
 
 func _try_place(loud: bool) -> void:
 	if selected_id() == "seed":
-		_plant()
+		_plant(loud)
 		return
 	_update_ghost()   # клик мог прийти раньше, чем _process успел пересчитать призрак
 	if ghost.is_empty():
@@ -115,7 +139,7 @@ func _try_place(loud: bool) -> void:
 
 
 ## Посадить зерно: клик по грядке или по воздуху прямо над ней.
-func _plant() -> void:
+func _plant(loud: bool = false) -> void:
 	var cost: Dictionary = GameConfig.player()["plant_cost"]
 	var cell := TileCatalog.cell_at(get_global_mouse_position())
 	if not player.in_reach(TileCatalog.cell_center(cell)) or not GameState.can_afford(cost):
@@ -123,8 +147,15 @@ func _plant() -> void:
 	for target in [cell, cell + Vector2i.DOWN]:
 		if Sim.plant(target):
 			GameState.pay(cost)
+			GameState.report("planted")
 			Audio.play("plant")
 			return
+	var on_plot := false
+	for crop in Sim.get_crops():
+		on_plot = on_plot or crop.get("cell") in [cell, cell + Vector2i.DOWN]
+	if loud and not on_plot and _last_plant_warn != cell:
+		_last_plant_warn = cell
+		GameState.notify("NOTICE_PLANT_WHERE")
 
 
 func _draw() -> void:

@@ -18,6 +18,8 @@ var _reason: Label
 var _night: ColorRect
 var _toast_tween: Tween
 var _banner_tween: Tween
+var _goal: Label                # «что делать сейчас», когда обучение молчит
+var _goal_timer := 0.0
 var _quota_have := -1          # сколько слитков было на складе при прошлом сигнале
 @onready var _hint_of_phase := {DayCycle.Phase.DRONE: "HINT_DRONE", DayCycle.Phase.EVENING: "HINT_EVENING",
 	DayCycle.Phase.NIGHT: "HINT_NIGHT"}
@@ -32,6 +34,7 @@ func setup(build: Node) -> void:
 	_hint = _line(UiKit.label("", UiKit.FONT_SIZE, UiKit.ACCENT), Control.PRESET_TOP_WIDE, HINT_TOP)
 	_banner = _line(UiKit.title("", UiKit.TITLE_SIZE), Control.PRESET_TOP_WIDE, BANNER_TOP)
 	_toast = _line(UiKit.label(""), Control.PRESET_BOTTOM_WIDE, -TOAST_BOTTOM)
+	_goal = _line(UiKit.label("", UiKit.FONT_SIZE, UiKit.TEXT), Control.PRESET_TOP_WIDE, HINT_TOP)
 	_reason = UiKit.label("", UiKit.SMALL_SIZE, UiKit.BAD)
 	add_child(_reason)
 	_banner.modulate.a = 0.0
@@ -53,12 +56,51 @@ func _line(label: Label, preset: int, offset_y: float) -> Label:
 	return label
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_goal_timer -= delta
+	if _goal_timer <= 0.0:
+		_goal_timer = 0.5
+		_update_goal()
 	var ghost: Dictionary = _build.ghost
 	_reason.visible = not ghost.is_empty() and not ghost["ok"]
 	if _reason.visible:
 		_reason.text = tr(ghost["reason"])
 		_reason.position = get_local_mouse_position() + CURSOR_OFFSET
+
+
+## Строка цели вверху экрана: самая важная проблема или следующий шаг. Видна днём, когда обучение не показывает плашку.
+func _update_goal() -> void:
+	var tutorial := get_node_or_null("../Tutorial")
+	var busy: bool = (tutorial != null and tutorial.visible) or _hint.text != "" or DayCycle.phase != DayCycle.Phase.DAY
+	_goal.text = "" if busy else goal_text()
+	_goal.add_theme_color_override("font_color", UiKit.BAD if _goal.text.begins_with("⚠") else UiKit.ACCENT)
+
+
+## Совет игроку по состоянию фабрики. Порядок важен: сначала то, что остановило линию.
+func goal_text() -> String:
+	var states := {}
+	var types := {}
+	for machine in Sim.get_machines():
+		types[machine.get("type")] = true
+		states[machine.get("state")] = true
+	var have := Sim.storage_count("ingot")
+	var need := GameState.display_quota()
+	var grain := int(GameState.pockets.get("grain", 0))
+	if states.has(Sim.State.NO_FUEL):
+		return "⚠ " + tr("GOAL_FEED" if grain > 0 else "GOAL_GRAIN")
+	if states.has(Sim.State.BLOCKED):
+		return "⚠ " + tr("GOAL_BLOCKED")
+	if states.has(Sim.State.EXHAUSTED):
+		return "⚠ " + tr("GOAL_EXHAUSTED")
+	if not types.has("drill") and GameState.is_unlocked("drill"):
+		return tr("GOAL_BUILD_LINE")
+	if not types.has("sprinkler") and GameState.is_unlocked("sprinkler"):
+		return tr("GOAL_SPRINKLER")
+	if not types.has("harvester") and GameState.is_unlocked("harvester"):
+		return tr("GOAL_HARVESTER")
+	if have < need:
+		return tr("GOAL_QUOTA") % [have, need]
+	return tr("GOAL_GROW") % GameState.day
 
 
 func _on_notice(key: String) -> void:
