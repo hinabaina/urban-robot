@@ -1,5 +1,6 @@
-# Рация: сюжет и выборы с последствиями. Айша из аула выходит на связь по утрам и в важные моменты;
-# иногда просит о помощи, и решение меняет ход партии и концовку. Сценарий в data/story.json. Владелец: A.
+# Рация: сюжет, разговоры и выборы с последствиями. На связи трое: Айша из аула, Ержан-ата и диспетчер
+# комбината. Ответы игрока меняют отношения с каждым (GameState.bonds), ход партии и концовку.
+# Сценарий в data/story.json: реплика — ключ перевода или {who, text, choices}. Владелец: A.
 class_name Radio
 extends Control
 
@@ -15,9 +16,15 @@ const FACES := {
 		"..hssmmsshh.", "..hhsssshh..", ".hh.bbbb.hh.", ".h.bbwwbb.h.", "...bbbbbb...", "...bbbbbb..."],
 	"erzhan": ["...kkkkkk...", "..kykykyk...", "..kkkkkkkk..", ".wssssssssw.", ".wsessssesw.", "..ssssssss..",
 		"..swwwwwws..", "..wwwmmwww..", "...wwwwww...", "..ccwwwwcc..", ".cccccccccc.", ".cccccccccc."],
+	"dispatcher": ["...gggggg...", "..gggggggg..", "..gggyyggg..", "..hhhhhhhh..", "..ssssssss..", "..sllsslls..",
+		"..ssssssss..", "..sssmmsss..", "...ssssss...", "..ddwrrwdd..", ".dddwrrwddd.", ".ddddrrdddd."],
 }
 const PALETTE := {"r": Color("d9483b"), "s": Color("e8b48a"), "h": Color("2b2233"), "e": Color("1a1423"), "m": Color("a8443c"),
-	"b": Color("3f6fb5"), "w": Color("f3ead2"), "k": Color("2f6b4f"), "y": Color("f4d34f"), "c": Color("7a5230")}
+	"b": Color("3f6fb5"), "w": Color("f3ead2"), "k": Color("2f6b4f"), "y": Color("f4d34f"), "c": Color("7a5230"),
+	"g": Color("5b6478"), "d": Color("2e3445"), "l": Color("9fd4e8")}
+const NAME_COLORS := {"aisha": Color("f4d34f"), "erzhan": Color("8fd694"), "dispatcher": Color("9fb4d8")}
+const BOND_UP := Color("8fd694")
+const BOND_DOWN := Color("e0685c")
 
 static var enabled := true        # автопроверки выключают рацию там, где она мешает
 
@@ -32,8 +39,9 @@ var _panel: PanelContainer
 var _face: Control
 var _who := "aisha"
 var _name: Label
+var _note: Label                  # «Айша это запомнит»
 var _text: Label
-var _buttons: HBoxContainer
+var _buttons: BoxContainer
 
 
 func setup(player: CharacterBody2D, moment: Moment) -> void:
@@ -61,13 +69,19 @@ func setup(player: CharacterBody2D, moment: Moment) -> void:
 	var column := UiKit.vbox(8)
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(column)
+	var head := UiKit.hbox(12)
+	column.add_child(head)
 	_name = UiKit.title("", 12, UiKit.ACCENT)
-	column.add_child(_name)
+	_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(_name)
+	_note = UiKit.label("", UiKit.SMALL_SIZE)
+	head.add_child(_note)
 	_text = UiKit.label("")
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.custom_minimum_size = Vector2(WIDTH - 140.0, 84.0)
 	column.add_child(_text)
-	_buttons = UiKit.hbox(12)
+	_buttons = BoxContainer.new()
+	_buttons.add_theme_constant_override("separation", 8)
 	_buttons.alignment = BoxContainer.ALIGNMENT_END
 	column.add_child(_buttons)
 	visible = false
@@ -107,7 +121,13 @@ func _process(_delta: float) -> void:
 
 
 func _fits(call: Dictionary) -> bool:
-	return (enabled and not GameState.story_done.has(call["id"])
+	for who in call.get("min", {}):      # отношения не ниже
+		if int(GameState.bonds.get(who, 0)) < int(call["min"][who]):
+			return false
+	for who in call.get("max", {}):      # отношения не выше
+		if int(GameState.bonds.get(who, 0)) > int(call["max"][who]):
+			return false
+	return (enabled and not GameState.story_done.has(call["id"]) and not GameState.story_done.has(call.get("unless_done", ""))
 		and (not call.has("if") or GameState.story_flags.has(call["if"]))
 		and (not call.has("unless") or not GameState.story_flags.has(call["unless"])))
 
@@ -122,21 +142,22 @@ func _show(call: Dictionary) -> void:
 	visible = true
 	DayCycle.running = false
 	_player.frozen = true
-	_who = call.get("who", "aisha")
-	_name.text = tr("RADIO_NAME_" + _who.to_upper())
-	_face.queue_redraw()
+	_note.text = ""
 	Audio.play("hint")
 	_apply(call.get("effects", {}))
-	var lines: Array = call["lines"]
-	var choices: Array = call.get("choices", [])
+	var speaker: String = call.get("who", "aisha")
+	var lines := _lines(call["lines"])
 	for i in lines.size():
-		var last := i == lines.size() - 1
-		_say(tr(lines[i]), choices if last else [])
+		var line: Dictionary = lines[i]
+		var choices: Array = line.get("choices", call.get("choices", []) if i == lines.size() - 1 else [])
+		_say(line.get("who", speaker), tr(line["text"]), choices)
 		var picked: int = await pressed
-		if last and not choices.is_empty():
-			var choice: Dictionary = choices[clampi(picked, 0, choices.size() - 1)]
-			_apply(choice.get("effects", {}))
-			_say(tr(choice["reply"]), [])
+		if choices.is_empty():
+			continue
+		var choice: Dictionary = choices[_pick(choices, picked)]
+		_apply(choice.get("effects", {}))
+		for reply in _lines(choice.get("reply", [])):
+			_say(reply.get("who", speaker), tr(reply["text"]), [])
 			await pressed
 	visible = false
 	_open = false
@@ -144,25 +165,54 @@ func _show(call: Dictionary) -> void:
 	DayCycle.running = true
 
 
-## Показать реплику: текст печатается, под ним «Дальше» или варианты выбора.
-func _say(text: String, choices: Array) -> void:
+## Реплики в одном виде: ключ перевода, {who, text} или их список превращаются в список словарей.
+func _lines(value: Variant) -> Array:
+	var result := []
+	for line in (value if value is Array else [value]):
+		result.append(line if line is Dictionary else {"text": line})
+	return result
+
+
+## Номер выбранного ответа; «дальше» (-1) берёт первый доступный.
+func _pick(choices: Array, picked: int) -> int:
+	if picked >= 0:
+		return mini(picked, choices.size() - 1)
+	for i in choices.size():
+		if _can(choices[i].get("need", {})):
+			return i
+	return choices.size() - 1
+
+
+## Показать реплику: портрет и имя говорящего, текст печатается, под ним «Дальше» или варианты ответа.
+func _say(who: String, text: String, choices: Array) -> void:
+	_who = who
+	_name.text = tr("RADIO_NAME_" + who.to_upper())
+	_name.add_theme_color_override("font_color", NAME_COLORS.get(who, UiKit.ACCENT))
+	_face.queue_redraw()
+	if not GameState.bonds.has(who):
+		GameState.bonds[who] = 0         # познакомились
 	_text.text = text
 	_text.visible_ratio = 0.0
 	_typing = create_tween()
 	_typing.tween_property(_text, "visible_ratio", 1.0, text.length() / LETTERS_PER_SECOND)
 	for child in _buttons.get_children():
 		child.queue_free()
+	_buttons.vertical = choices.size() > 2      # три ответа в строку не помещаются
 	if choices.is_empty():
 		_buttons.add_child(UiKit.button(tr("RADIO_NEXT"), press.bind(-1)))
 		return
 	for i in choices.size():
 		var can := _can(choices[i].get("need", {}))
-		var button := UiKit.button(tr(choices[i]["text"]) + ("" if can else " (%s)" % tr("RADIO_CANT")), pressed.emit.bind(i))
+		var why := "RADIO_CANT_BOND" if choices[i].get("need", {}).has("bonds") else "RADIO_CANT"
+		var button := UiKit.button(tr(choices[i]["text"]) + ("" if can else " (%s)" % tr(why)), pressed.emit.bind(i))
 		button.disabled = not can
 		_buttons.add_child(button)
 
 
 func _can(need: Dictionary) -> bool:
+	for who in need.get("bonds", {}):
+		if int(GameState.bonds.get(who, 0)) < int(need["bonds"][who]):
+			return false
 	return Sim.storage_count("ingot") >= int(need.get("storage_ingot", 0)) and GameState.can_afford(need.get("pockets", {}))
 
 
@@ -170,6 +220,8 @@ func _can(need: Dictionary) -> bool:
 func _apply(effects: Dictionary) -> void:
 	if effects.has("flag"):
 		GameState.story_flags.append(effects["flag"])
+	if effects.has("bonds"):
+		_remember(effects["bonds"])
 	if effects.has("storage_ingot"):
 		Sim.storage_take_for_drone(-int(effects["storage_ingot"]))
 		GameState.emit_quota()
@@ -187,6 +239,22 @@ func _apply(effects: Dictionary) -> void:
 		for machine in belts.slice(0, int(effects["break_belts"])):
 			Sim.remove_machine(machine.get("cell"))
 		Audio.play("demolish")
+
+
+## Отношения меняются, и игрок это видит: «▲ Айша это запомнит».
+func _remember(changes: Dictionary) -> void:
+	var notes := []
+	var up := true
+	for who in changes:
+		var delta := int(changes[who])
+		GameState.bonds[who] = int(GameState.bonds.get(who, 0)) + delta
+		up = up and delta > 0
+		notes.append(("▲ " if delta > 0 else "▼ ") + tr("RADIO_REMEMBER") % tr("BOND_NAME_" + who.to_upper()))
+	_note.text = "   ".join(notes)
+	_note.add_theme_color_override("font_color", BOND_UP if up else BOND_DOWN)
+	_note.modulate.a = 0.0
+	create_tween().tween_property(_note, "modulate:a", 1.0, 0.4)
+	Audio.play("gift" if up else "hint")
 
 
 func _draw_face() -> void:
