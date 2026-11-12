@@ -3,6 +3,7 @@ extends Node2D
 
 signal selection_changed(index: int)
 
+const BLOCK := "block"            # ставится как блок земли, а не как машина
 const DIRS: Array[Vector2i] = [Vector2i.RIGHT, Vector2i.DOWN, Vector2i.LEFT, Vector2i.UP]
 const OK_COLOR := Color(0.45, 1.0, 0.45)
 const BAD_COLOR := Color(1.0, 0.35, 0.3)
@@ -83,7 +84,7 @@ func _start_placing(action: StringName, loud: bool) -> void:
 ## ЛКМ ставит, если в руке семена или машина. Исключение одно: под курсором спелая грядка — её ЛКМ собирает.
 func _left_click_builds() -> bool:
 	var id := selected_id()
-	if id != "seed" and not MachineCatalog.is_machine(id):
+	if id != "seed" and id != BLOCK and not MachineCatalog.is_machine(id):
 		return false
 	var cell := TileCatalog.cell_at(get_global_mouse_position())
 	var ripe := int(GameConfig.player()["ripe_stage"])
@@ -108,6 +109,9 @@ func _process(_delta: float) -> void:
 func _update_ghost() -> void:
 	ghost = {}
 	var id := selected_id()
+	if id == BLOCK and not player.frozen:
+		_update_block_ghost()
+		return
 	if player.frozen or not MachineCatalog.is_machine(id):
 		return
 	var size := MachineCatalog.size(id)
@@ -122,6 +126,23 @@ func _update_ghost() -> void:
 	ghost = {"type": id, "cell": cell, "dir": direction(), "ok": reason == "", "reason": reason}
 
 
+## Блок земли: клетка пустая, рядом, и не там, где стоит сам герой (иначе застрянет).
+func _update_block_ghost() -> void:
+	var cell := TileCatalog.cell_at(get_global_mouse_position())
+	var tile := Rect2(Vector2(cell) * TileCatalog.TILE, Vector2.ONE * TileCatalog.TILE)
+	var body := Rect2(player.global_position - Vector2(5, 10), Vector2(10, 20))
+	var reason := ""
+	if not player.in_reach(TileCatalog.cell_center(cell)):
+		reason = "REASON_TOO_FAR"
+	elif not MachineCatalog.find(cell).is_empty():
+		reason = "REASON_OCCUPIED"
+	elif Sim.get_tile(cell) != Sim.Tile.AIR or Sim.get_tile(cell + Vector2i.DOWN) == Sim.Tile.FARMLAND:
+		reason = "REASON_NOT_EMPTY"
+	elif tile.intersects(body):
+		reason = "REASON_PLAYER_HERE"
+	ghost = {"type": BLOCK, "cell": cell, "dir": direction(), "ok": reason == "", "reason": reason}
+
+
 func _try_place(loud: bool) -> void:
 	if selected_id() == "seed":
 		_plant(loud)
@@ -130,6 +151,14 @@ func _try_place(loud: bool) -> void:
 	if ghost.is_empty():
 		return
 	_last_cell = ghost["cell"]
+	if ghost["type"] == BLOCK:
+		if ghost["ok"] and Sim.place_block(ghost["cell"]):
+			GameState.report("placed:block")
+			Audio.play("place")
+		elif loud:
+			GameState.notify(ghost["reason"])
+			Audio.play("error")
+		return
 	if ghost["ok"] and Sim.place_machine(ghost["type"], ghost["cell"], ghost["dir"]):
 		GameState.pay(MachineCatalog.cost(ghost["type"]))
 		GameState.report("placed:" + ghost["type"])
@@ -174,6 +203,9 @@ func _draw() -> void:
 	var center := rect.get_center()
 	var dir := Vector2(ghost["dir"])
 	var directional: bool = GameConfig.player()["directional"].has(type)
+	if type == BLOCK:
+		draw_texture(Sprites.icon(BLOCK), rect.position, Color(color, 0.75))
+		return
 	draw_set_transform(center, dir.angle() if type == "conveyor" else 0.0)
 	draw_texture(Sprites.machine(type), -rect.size * 0.5, Color(color, 0.75))
 	if directional and type != "conveyor":

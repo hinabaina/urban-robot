@@ -194,6 +194,42 @@ ICONS = {
         "....KKKKKKK.....",
         "................",
     ],
+    "wrench": [
+        "................",
+        "..........KKK...",
+        ".........KmmmK..",
+        "........KmK.KmK.",
+        "........KmK..K..",
+        ".......KmmmK....",
+        "......KmmmK.....",
+        ".....KmmmK......",
+        "....KmmmK.......",
+        "...KmmmK........",
+        "..KeddK.........",
+        ".KeddK..........",
+        "KeddK...........",
+        "KddK............",
+        ".KK.............",
+        "................",
+    ],
+    "block": [
+        "................",
+        ".KKKKKKKKKKKKKK.",
+        ".KeeeeeeeeeeedK.",
+        ".KeddddddddddDK.",
+        ".KedeedddddeeDK.",
+        ".KeddddddddddDK.",
+        ".KKKKKKKKKKKKKK.",
+        ".KeeeeeedeeeedK.",
+        ".KedddddKdddddK.",
+        ".KedeeddKdedddK.",
+        ".KDDDDDDKDDDDDK.",
+        ".KKKKKKKKKKKKKK.",
+        ".KeeedeeeeeedeK.",
+        ".KeddKdddddKddK.",
+        ".KDDDKDDDDDKDDK.",
+        ".KKKKKKKKKKKKKK.",
+    ],
     "lock": [
         "................",
         ".....KKKKKK.....",
@@ -339,7 +375,8 @@ def build():
     heart = ascii_sprite(ICONS["heart"], LEG)
     empty = recolor(heart, {"r2": "m2", "r3": "m3", "r1": "m1"})
     order = ["pickaxe", "can", "seed", "lock", "star", "sun", "moon"]
-    save(sheet([ascii_sprite(ICONS[k], LEG) for k in order] + [heart, empty]), "icons.png")
+    extra = ["wrench", "block"]          # новые иконки только в конец: номера старых не сдвигаются
+    save(sheet([ascii_sprite(ICONS[k], LEG) for k in order] + [heart, empty] + [ascii_sprite(ICONS[k], LEG) for k in extra]), "icons.png")
     save(sheet([ascii_sprite(STATE_ICONS[k], LEG) for k in ("stop", "no_fuel", "no_water", "exhausted")]),
          "state_icons.png")
 

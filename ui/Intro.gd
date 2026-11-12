@@ -80,13 +80,10 @@ func _process(delta: float) -> void:
 	_update_scene(index, u / _lengths[index])
 
 
+## Клавиши и клики во время ролика до игры не доходят; пропуск — удержанием Пробела (HoldSkip).
 func _unhandled_input(event: InputEvent) -> void:
-	var key: bool = event is InputEventKey and event.pressed and not event.echo \
-		and event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]
-	var click: bool = event is InputEventMouseButton and event.pressed
-	if key or click:
+	if event is InputEventKey or event is InputEventMouseButton:
 		get_viewport().set_input_as_handled()
-		skip()
 
 
 ## Закончить ролик: затемнение, сигнал finished, затем ролик растворяется и удаляется.
@@ -211,12 +208,9 @@ func _build_text() -> void:
 	_title.visible = false
 	for label in [_counter, _days]:
 		label.visible = false
-	var skip_button := UiKit.button(tr("INTRO_SKIP") + "  ›", skip)
-	skip_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	skip_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	skip_button.position += Vector2(-24, 20)
-	skip_button.focus_mode = Control.FOCUS_NONE
-	add_child(skip_button)
+	var hold := HoldSkip.new()          # пропуск только удержанием Пробела: случайный клик ролик не обрывает
+	hold.skipped.connect(skip)
+	add_child(hold)
 	_black = ColorRect.new()
 	_black.color = Color(0, 0, 0, 0)
 	_black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

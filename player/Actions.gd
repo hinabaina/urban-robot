@@ -14,6 +14,7 @@ const INTERACT := &"interact"  # E
 const DEMOLISH := &"demolish"  # F
 const XRAY := &"xray"          # X
 const SLEEP := &"sleep"        # Z
+const GUIDE := &"guide"        # B — записная книжка
 const PAUSE := &"pause"        # Esc
 const SLOT_PREFIX := "slot_"   # slot_1 .. slot_9
 
@@ -21,10 +22,11 @@ const SLOT_PREFIX := "slot_"   # slot_1 .. slot_9
 const KEYS := {
 	LEFT: [KEY_A, KEY_LEFT], RIGHT: [KEY_D, KEY_RIGHT], JUMP: [KEY_SPACE],
 	UP: [KEY_W, KEY_UP], DOWN: [KEY_S, KEY_DOWN], ROTATE: [KEY_Q], INTERACT: [KEY_E],
-	DEMOLISH: [KEY_F], XRAY: [KEY_X], SLEEP: [KEY_Z], PAUSE: [KEY_ESCAPE],
+	DEMOLISH: [KEY_F], XRAY: [KEY_X], SLEEP: [KEY_Z], PAUSE: [KEY_ESCAPE], GUIDE: [KEY_B],
 }
 const MOUSE := {USE: MOUSE_BUTTON_LEFT, PLACE: MOUSE_BUTTON_RIGHT}
-const SLOT_COUNT := 9
+const SLOT_COUNT := 11
+const EXTRA_SLOT_KEYS := [KEY_0, KEY_MINUS]   # слоты 10 и 11: «Разобрать» и «Блок»
 
 
 static func slot(index: int) -> StringName:
@@ -46,7 +48,7 @@ static func ensure() -> void:
 	for i in SLOT_COUNT:
 		if _add(slot(i)):
 			var event := InputEventKey.new()
-			event.physical_keycode = KEY_1 + i
+			event.physical_keycode = KEY_1 + i if i < 9 else EXTRA_SLOT_KEYS[i - 9]
 			InputMap.action_add_event(slot(i), event)
 
 

@@ -35,11 +35,45 @@ func scenario_checks() -> void:
 	await _hands()
 	await _farming()
 	await _building()
+	await _tools()
 	await _pause()
 	await _day_end()
 	await _intro()
 	await _languages()
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+## Инструменты 10 и 11: блок земли ставится в пустую клетку и не туда, где стоит герой; ключ разбирает машину.
+func _tools() -> void:
+	await teleport(Vector2i(44, 11))
+	await press(Actions.slot(10))
+	check("block slot selected with the minus key slot", main.get_node("Player/Build").selected_id() == "block")
+	mouse_to_cell(Vector2i(46, 11))
+	await get_tree().process_frame
+	await press(Actions.PLACE)
+	check("block placed in empty air", Sim.get_tile(Vector2i(46, 11)) == Sim.Tile.SOIL, Sim.get_tile(Vector2i(46, 11)))
+	mouse_to_cell(Vector2i(44, 11))
+	await get_tree().process_frame
+	await press(Actions.PLACE)
+	check("no block where the player stands", Sim.get_tile(Vector2i(44, 11)) == Sim.Tile.AIR)
+	GameState.pockets["ore"] = 5
+	GameState.pockets_changed.emit()
+	await press(Actions.slot(4))
+	mouse_to_cell(Vector2i(46, 10))
+	await get_tree().process_frame
+	await press(Actions.PLACE)
+	check("conveyor stands on the block", MachineCatalog.find(Vector2i(46, 10)).get("type") == "conveyor" and GameState.pockets["ore"] == 4)
+	await press(Actions.slot(9))
+	mouse_to_cell(Vector2i(46, 10))
+	await get_tree().process_frame
+	await hold(Actions.USE, 0.8)
+	check("wrench + LMB dismantles with refund", MachineCatalog.find(Vector2i(46, 10)).is_empty() and GameState.pockets["ore"] == 5,
+		[MachineCatalog.find(Vector2i(46, 10)), GameState.pockets])
+	await press(Actions.slot(0))
+	mouse_to_cell(Vector2i(46, 11))
+	await get_tree().process_frame
+	await click(Actions.USE, 0.7)
+	check("pickaxe digs the block out", Sim.get_tile(Vector2i(46, 11)) == Sim.Tile.AIR)
 
 
 func _movement() -> void:
@@ -247,13 +281,17 @@ func scenario_tutorial() -> void:
 	check("after the moment the player can move again", not player.frozen and DayCycle.running)
 	check("parcel has parts for the first line", GameState.pockets["ingot"] == 5 and GameState.pockets["ore"] >= 24, GameState.pockets)
 	await teleport(Vector2i(41, 11))
+	await _radio_through(main.get_node("UI/Radio"))
 	await press(Actions.slot(5))
 	mouse_to_world(TileCatalog.cell_center(Vector2i(38, 10)) + Vector2(4, 4))   # не на границе клеток призрака 2x2
+	await get_tree().process_frame     # живая мышь тоже приходит раньше клика: призрак успевает встать под курсор
 	await press(Actions.PLACE)
 	check("step 6 done: drill stands on the surface outcrop", step.call() == 6 and MachineCatalog.find(Vector2i(38, 10)).get("type") == "drill",
 		[step.call(), Sim.can_place("drill", Vector2i(38, 10), Vector2i.RIGHT)])
+	await _radio_through(main.get_node("UI/Radio"))   # звонок по часам мог прийти прямо сейчас: игрок сначала дослушает
 	await press(Actions.slot(6))
 	mouse_to_world(TileCatalog.cell_center(Vector2i(44, 10)) + Vector2(4, 4))
+	await get_tree().process_frame
 	await press(Actions.PLACE)
 	check("step 7 done: furnace placed", step.call() == 7, step.call())
 	await press(Actions.slot(4))
@@ -444,8 +482,19 @@ func _intro() -> void:
 	esc.keycode = KEY_ESCAPE
 	esc.pressed = true
 	Input.parse_input_event(esc)
+	await wait(0.6)
+	check("intro: a single key press does not skip", not done[0] and is_instance_valid(intro))
+	var space := InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.physical_keycode = KEY_SPACE
+	space.pressed = true
+	Input.parse_input_event(space)
+	await wait(1.3)                          # держим Пробел дольше HoldSkip.HOLD
+	space = space.duplicate()
+	space.pressed = false
+	Input.parse_input_event(space)
 	await wait(2.8)
-	check("intro: Esc skips and emits finished", done[0])
+	check("intro: holding Space skips and emits finished", done[0])
 	check("intro: removed after skip", not is_instance_valid(intro))
 	check("intro: game music volume restored", Audio.music_volume > 0.0, Audio.music_volume)
 

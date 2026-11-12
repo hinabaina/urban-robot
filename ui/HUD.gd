@@ -2,13 +2,14 @@
 extends Control
 
 signal pause_pressed()
+signal guide_pressed()
 
 const BAR_SIZE := Vector2(190, 28)
-const AUTO_BAR_SIZE := Vector2(132, 28)
+const AUTO_BAR_SIZE := Vector2(118, 28)
 const HEART := 24
 const POCKET_ICON := 24
 const EDGE := 6
-const GAP := 10
+const GAP := 8
 
 var _orb: TextureRect
 var _day: Label
@@ -108,6 +109,9 @@ func _build_right(row: HBoxContainer) -> void:
 		button.toggle_mode = true
 		_speed_buttons[value] = button
 		row.add_child(button)
+	var guide := UiKit.button("?", func() -> void: guide_pressed.emit())
+	guide.tooltip_text = tr("GUIDE_HINT")
+	row.add_child(guide)
 	var pause := UiKit.button("II", func() -> void: pause_pressed.emit())
 	pause.tooltip_text = tr("HUD_PAUSE_TIP")
 	row.add_child(pause)

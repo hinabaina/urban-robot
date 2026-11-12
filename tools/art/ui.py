@@ -1,8 +1,9 @@
 """Элементы интерфейса: панели и слоты (9-patch, поля 4 px), полоса прогресса, стрелка выхода."""
 from lib import new, px, rect, frame, save, rgba
 
-FILL = "#20263a"
-FILL_HI = "#2b3350"
+# Тёмное дерево вместо холодного «техно»-синего: интерфейс в одной гамме с юртой, рацией и книжкой.
+FILL = "#3b2a20"
+FILL_HI = "#4a3527"
 
 
 def box(border, fill=FILL, inner=None, size=16):
@@ -62,13 +63,13 @@ def save2x(img, name):
 
 
 def build():
-    save2x(box("m3"), "ui_panel.png")
-    save2x(box("m2", "#171b2b", "#171b2b"), "ui_slot.png")
-    save2x(box("o3", "#2a2338", "#3a2f45"), "ui_slot_selected.png")
-    save2x(box("m4", "#35405e", "#4a5880"), "ui_button.png")
-    save2x(box("o3", "#4a5880", "#6373a3"), "ui_button_hover.png")
-    save2x(box("m2", "#171b2b", "#101320"), "ui_button_pressed.png")
-    save2x(box("m2", "#101320", "#101320", 12), "ui_bar_bg.png")
+    save2x(box("w3"), "ui_panel.png")
+    save2x(box("w2", "#2a1d16", "#2a1d16"), "ui_slot.png")
+    save2x(box("o3", "#3a2a1e", "#4a3527"), "ui_slot_selected.png")
+    save2x(box("w4", "#6a4a32", "#82603f"), "ui_button.png")
+    save2x(box("o3", "#82603f", "#9a7450"), "ui_button_hover.png")
+    save2x(box("w2", "#2a1d16", "#20160f"), "ui_button_pressed.png")
+    save2x(box("w1", "#20160f", "#20160f", 12), "ui_bar_bg.png")
     bar = new(8, 8); rect(bar, 0, 0, 8, 8, "y2"); rect(bar, 0, 0, 8, 2, "y4"); rect(bar, 0, 6, 8, 2, "y1")
     save2x(bar, "ui_bar_fill.png")
     gold = new(8, 8); rect(gold, 0, 0, 8, 8, "n2"); rect(gold, 0, 0, 8, 2, "n3"); rect(gold, 0, 6, 8, 2, "n1")

@@ -102,6 +102,18 @@ func dig(cell: Vector2i) -> Dictionary:
 	tile_changed.emit(cell, Tile.AIR)
 	return {"removed": true, "ore": false}
 
+## Игрок ставит блок земли в пустую клетку: опора для машин и площадка. Над грядкой нельзя (там растёт колос).
+## Убирается киркой как обычная земля. true, если блок поставлен.
+func place_block(cell: Vector2i) -> bool:
+	if not grid.in_bounds(cell) or grid.get_tile(cell) != Tile.AIR or grid.machine_at(cell) != null:
+		return false
+	if grid.get_tile(cell + Vector2i.DOWN) == Tile.FARMLAND:
+		return false
+	grid.set_tile(cell, Tile.SOIL)
+	tile_changed.emit(cell, Tile.SOIL)
+	return true
+
+
 ## E: положить один предмет из карманов в машину. Предмет помечается by_hand.
 func insert(cell: Vector2i, item_type: String) -> bool:
 	var machine := grid.machine_at(cell)

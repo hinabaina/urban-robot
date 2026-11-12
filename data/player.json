@@ -34,12 +34,16 @@
     "drill",
     "furnace",
     "sprinkler",
-    "harvester"
+    "harvester",
+    "wrench",
+    "block"
   ],
   "tools": [
     "pickaxe",
     "can",
-    "seed"
+    "seed",
+    "wrench",
+    "block"
   ],
   "directional": [
     "conveyor",
@@ -50,7 +54,8 @@
   "tool_icons": {
     "pickaxe": 0,
     "can": 1,
-    "seed": 2
+    "seed": 2,
+    "wrench": 9
   },
   "can_capacity": 10,
   "can_fill_time": 1.0,
@@ -61,8 +66,9 @@
     "zoom": 4.0,
     "follow_speed": 7.0,
     "look_speed": 2.5,
-    "look_up_tiles": 2.0,
+    "look_up_tiles": 0.75,
     "look_down_tiles": 2.5,
-    "lead_tiles": 1.0
+    "lead_tiles": 1.0,
+    "jump_follow_px": 40.0
   }
 }

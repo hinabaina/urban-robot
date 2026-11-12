@@ -4,7 +4,7 @@ class_name Sprites
 const DIR := "res://assets/sprites/"
 const MACHINE_FRAMES := {"conveyor": 4, "drill": 4, "furnace": 3, "sprinkler": 2, "harvester": 2,
 	"storage": 1, "campfire": 4, "ladder": 1}
-const ICONS := ["pickaxe", "can", "seed", "lock", "star", "sun", "moon", "heart", "heart_empty"]
+const ICONS := ["pickaxe", "can", "seed", "lock", "star", "sun", "moon", "heart", "heart_empty", "wrench", "block"]
 const ITEMS := ["ore", "grain", "ingot"]
 const STATE_ICONS := ["stop", "no_fuel", "no_water", "exhausted"]
 const ICON_SIZE := 16

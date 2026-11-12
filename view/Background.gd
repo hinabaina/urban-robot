@@ -1,6 +1,8 @@
 # Небо, солнце и луна, облака, холмы степи и общий оттенок мира по времени суток. Владелец: B.
 extends Node2D
 
+const ORB_HORIZON := 14.0        # солнце и луна встают чуть выше земли
+const ORB_TOP_MARGIN := 30.0     # и в зените не заходят под верхнюю панель (пиксели мира)
 const SURFACE_Y := 192.0       # верх земли в пикселях (строка 12)
 const BAND := 8.0
 const HILLS := [["hills_far", 0.85, 30.0], ["hills_near", 0.7, 22.0]]   # текстура, параллакс, высота над землёй
@@ -87,7 +89,14 @@ func _draw() -> void:
 func _draw_orb(icon_name: String, phase: float, center_x: float, view_w: float, fix: Color) -> void:
 	if phase < 0.0 or phase > 1.0:
 		return
-	var pos := Vector2(center_x + (phase - 0.5) * view_w * 0.9, SURFACE_Y - 30.0 - sin(phase * PI) * 120.0)
+	# Дуга внутри видимого неба: от горизонта до полосы под верхней панелью, при любом зуме и сдвиге камеры.
+	var camera := get_viewport().get_camera_2d()
+	var view_top := SURFACE_Y - 200.0
+	if camera:
+		view_top = camera.get_screen_center_position().y - get_viewport_rect().size.y / camera.zoom.y * 0.5
+	var low := SURFACE_Y - ORB_HORIZON
+	var high := minf(view_top + ORB_TOP_MARGIN, low)
+	var pos := Vector2(center_x + (phase - 0.5) * view_w * 0.9, lerpf(low, high, sin(phase * PI)))
 	var glow := Color("fff0b0") if icon_name == "sun" else Color("cfd8ff")
 	for i in 3:
 		draw_circle(pos, 12.0 + i * 7.0, Color(glow, 0.10 - i * 0.025) * fix)
