@@ -115,12 +115,9 @@ func _open_settings(allow_locale: bool) -> void:
 	settings_panel.open()
 
 
-## «Новая игра»: в первый раз сначала вступительный ролик, потом игра.
+## «Новая игра»: всегда сначала вступительный ролик (пропуск удержанием Пробела), потом игра и звонок по рации.
 func _on_new_game() -> void:
-	if Settings.get_value("intro_seen"):
-		_start_playing()
-	else:
-		_play_intro(_start_playing)
+	_play_intro(_start_playing)
 
 
 ## Показать ролик поверх мира; after вызывается, когда экран уже тёмный.

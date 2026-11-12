@@ -40,6 +40,7 @@ func scenario_checks() -> void:
 	await _day_end()
 	await _intro()
 	await _languages()
+	await _info_page()
 	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
 
 
@@ -489,6 +490,9 @@ func _intro() -> void:
 	check("intro: each scene outlasts its voice line",
 		range(7).all(func(i: int) -> bool: return intro._lengths[i] > intro._voices[i].get_length() + intro.VOICE_DELAY))
 	check("intro: subtitle shown", intro._subtitle.text == tr("INTRO_1"), intro._subtitle.text)
+	var screen := Rect2(Vector2.ZERO, intro.get_viewport_rect().size)
+	check("intro: picture covers the whole screen", intro._view_box.get_global_rect().encloses(screen),
+		[intro._view_box.get_global_rect(), screen])
 	var esc := InputEventKey.new()
 	esc.keycode = KEY_ESCAPE
 	esc.pressed = true
@@ -535,3 +539,25 @@ func _languages() -> void:
 	intro.skip()
 	await wait(2.8)
 	TranslationServer.set_locale("ru")
+
+
+## «Как играть»: окно влезает в экран, текст прокручивается, Esc закрывает.
+func _info_page() -> void:
+	var page: Control = main.get_node("UI/InfoPage")
+	page.open("howto")
+	await wait(0.6)
+	var screen := Rect2(Vector2.ZERO, page.get_viewport_rect().size)
+	check("info page: window fits the screen", screen.encloses(page._panel.get_global_rect()), [page._panel.get_global_rect(), screen])
+	var esc := InputEventKey.new()
+	esc.keycode = KEY_ESCAPE
+	esc.physical_keycode = KEY_ESCAPE
+	esc.pressed = true
+	Input.parse_input_event(esc)
+	await wait(0.5)
+	check("info page: Esc closes it", not page.visible and not get_tree().paused)
+	page.open("credits")
+	await wait(0.4)
+	check("credits: team name", tr("CREDITS_TEAM").contains("Hack Larp"))
+	page.close()
+	await wait(0.4)
+	check("credits: closes with the button", not page.visible)

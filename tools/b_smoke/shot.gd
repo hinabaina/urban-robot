@@ -15,7 +15,7 @@ func _ready() -> void:
 	var scenario: String = args[2] if args.size() > 2 else ""
 	load("res://main/Main.gd").skip_menu = not scenario.begins_with("menu")
 	# Рация и кино-моменты останавливают игру; их проверяют только сценарии tutorial и story.
-	Radio.enabled = scenario in ["tutorial", "story"]
+	Radio.enabled = scenario in ["tutorial", "story", "menu_intro"]
 	Moment.enabled = Radio.enabled
 	main = load("res://main/Main.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(main)
@@ -269,3 +269,28 @@ func scenario_clean() -> void:
 	await get_tree().physics_frame
 	player.camera.snap()
 	DayCycle.running = false
+
+
+## Кадры вступительного ролика: по одному на сцену, рядом с out.png (intro_<n>.png).
+func scenario_intro() -> void:
+	var intro := Intro.new()
+	main.get_node("UI").add_child(intro)
+	var dir: String = OS.get_cmdline_user_args()[0].get_base_dir()
+	for i in intro._starts.size():
+		intro._time = intro._starts[i] + intro._lengths[i] * 0.6
+		await get_tree().create_timer(0.4).timeout
+		get_viewport().get_texture().get_image().save_png(dir + "/intro_%d.png" % i)
+
+
+## Полный путь из меню: «Новая игра» -> ролик -> пропуск Пробелом -> игра со звонком рации.
+func scenario_menu_intro() -> void:
+	var dir: String = OS.get_cmdline_user_args()[0].get_base_dir()
+	main.get_node("UI/MainMenu").new_game_pressed.emit()
+	await get_tree().create_timer(2.0).timeout
+	var intro: Node = main.get_node("UI").get_children().filter(func(n: Node) -> bool: return n is Intro).front()
+	print("CHECK intro shown: ", intro != null)
+	get_viewport().get_texture().get_image().save_png(dir + "/flow_intro.png")
+	intro.skip()
+	await get_tree().create_timer(3.0).timeout
+	print("CHECK intro gone: ", not is_instance_valid(intro))
+	print("CHECK radio open after intro: ", main.get_node("UI/Radio").is_open())
