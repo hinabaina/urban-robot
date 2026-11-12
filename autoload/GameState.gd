@@ -9,6 +9,7 @@ signal day_settled(result: Dictionary)   # {day, quota, taken, ok, auto, part}
 signal game_over(won: bool)
 signal notice(key: String)               # короткое сообщение игроку (ключ перевода)
 signal happened(event: String)           # событие для обучения: "placed:drill", "campfire_loaded"...
+signal gift_arrived(gift: Dictionary)    # дрон сбросил посылку посреди дня: {unlock: [...], pockets: {...}}
 
 var day := 1
 var trust := 3
@@ -19,10 +20,13 @@ var rocket: Array = []            # по дням: {part: String, patched: bool}
 var delivered_total := 0
 var delivered_auto := 0
 var finished := false
+var early_gift_given := false     # посылка первого дня (чертежи машин) уже сброшена
 
 
 func _ready() -> void:
-	Sim.item_delivered.connect(func(_type: String, _by_hand: bool) -> void: emit_quota())
+	Sim.item_delivered.connect(func(_type: String, _by_hand: bool) -> void:
+		emit_quota()
+		_check_early_gift())
 	new_game()
 
 
@@ -122,19 +126,35 @@ func settle_day() -> Dictionary:
 
 ## Утро следующего дня: подарок вечернего дрона (чертежи и ресурсы) становится доступен.
 func start_next_day() -> void:
-	var gift: Dictionary = GameConfig.day(day).get("gift", {})
+	_apply_gift(GameConfig.day(day).get("gift", {}))
+	day += 1
+	_emit_all()
+
+
+## Первый слиток на складе: дрон сразу сбрасывает чертежи и детали первых машин (early_gift в days.json),
+## чтобы автоматизация началась в первые минуты игры, а не на второй день.
+func _check_early_gift() -> void:
+	var gift: Dictionary = GameConfig.day(day).get("early_gift", {})
+	if early_gift_given or gift.is_empty() or Sim.storage_count("ingot") < 1:
+		return
+	early_gift_given = true
+	_apply_gift(gift)
+	_emit_all()
+	gift_arrived.emit(gift)
+	report("early_gift")
+
+
+func _apply_gift(gift: Dictionary) -> void:
 	for id in gift.get("unlock", []):
 		if not unlocked.has(id):
 			unlocked.append(id)
 	for type in gift.get("pockets", {}):
 		add_pocket(type, int(gift["pockets"][type]))
-	day += 1
-	_emit_all()
 
 
 func to_dict() -> Dictionary:
 	return {"day": day, "trust": trust, "pockets": pockets.duplicate(), "water": water, "unlocked": unlocked.duplicate(),
-		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto}
+		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto, "early_gift_given": early_gift_given}
 
 
 ## Восстановить состояние (загрузка сохранения или новая игра). Отсутствующие поля — как в начале партии.
@@ -149,6 +169,7 @@ func from_dict(d: Dictionary) -> void:
 	rocket = d.get("rocket", []).duplicate(true)
 	delivered_total = int(d.get("delivered_total", 0))
 	delivered_auto = int(d.get("delivered_auto", 0))
+	early_gift_given = bool(d.get("early_gift_given", false))
 	finished = false
 	_emit_all()
 

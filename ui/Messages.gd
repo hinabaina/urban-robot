@@ -37,6 +37,7 @@ func setup(build: Node) -> void:
 	_toast.modulate.a = 0.0
 	GameState.notice.connect(_on_notice)
 	GameState.day_settled.connect(_on_settled)
+	GameState.gift_arrived.connect(_on_gift)
 	DayCycle.phase_changed.connect(_on_phase)
 	_on_phase(DayCycle.phase)
 
@@ -69,6 +70,14 @@ func _on_settled(result: Dictionary) -> void:
 	_banner.add_theme_color_override("font_color", UiKit.GOOD if result["ok"] else UiKit.BAD)
 	_banner_tween = _flash(_banner, _banner_tween, BANNER_TIME)
 	Audio.play("quota_ok" if result["ok"] else "quota_fail")
+
+
+## Посылка дрона посреди дня: чертежи первых машин.
+func _on_gift(_gift: Dictionary) -> void:
+	_banner.text = tr("NOTICE_EARLY_GIFT")
+	_banner.add_theme_color_override("font_color", UiKit.ACCENT)
+	_banner_tween = _flash(_banner, _banner_tween, BANNER_TIME)
+	Audio.play("quota_ok")
 
 
 func _flash(label: Label, old: Tween, hold: float) -> Tween:

@@ -58,10 +58,10 @@ TUT_MOVE,"A / D — идти, Пробел — прыгать","A / D — жүр
 TUT_SHAFT,Встань на лестницу старой шахты и держи S — спустись вниз,"Ескі шахтаның сатысына тұрып, S пернесін басып тұр — төмен түс",Step onto the old mine's ladder and hold S to climb down
 TUT_ORE,Держи ЛКМ на рыжем камне — это руда. Добудь 4,Қызғылт тасқа сол батырманы басып тұр — бұл кен. 4 дана өндір,Hold LMB on the rusty rock — that's ore. Mine 4
 TUT_CAMPFIRE_PUT,Поднимись (W) к костру и нажми E — положи 2 руды и 1 зерно,"Алауға көтеріл (W) де, E бас — 2 кен мен 1 дән сал",Climb up (W) to the campfire and press E — put in 2 ore and 1 grain
-TUT_CAMPFIRE_BLOW,"Держи ЛКМ на костре, чтобы раздуть огонь и выплавить слиток","Отты үрлеп, құйма балқыту үшін алауға сол батырманы басып тұр",Hold LMB on the campfire to fan the flames and smelt an ingot
-TUT_STORAGE,Отнеси слиток на склад и нажми E,"Құйманы қоймаға апарып, E бас",Carry the ingot to storage and press E
+TUT_CAMPFIRE_BLOW,Поднимись (W) к костру и держи на нём ЛКМ: 2 руды + 1 зерно → слиток,"Алауға көтеріл (W) де, оған сол батырманы басып тұр: 2 кен + 1 дән → құйма",Climb up (W) to the campfire and hold LMB on it: 2 ore + 1 grain → ingot
+TUT_STORAGE,Отнеси слиток на склад у ракеты и нажми E,"Құйманы зымыран жанындағы қоймаға апарып, E бас",Carry the ingot to the storage by the rocket and press E
 TUT_FARM,"Зерно — топливо. Посади его на пашне (3, ПКМ), набери воды в колодце и полей (2, ЛКМ)","Дән — отын. Оны егістікке ек (3, оң батырма), құдықтан су алып, суар (2, сол батырма)","Grain is fuel. Plant it in the field (3, RMB), fill up at the well and water it (2, LMB)"
-TUT_GOAL,Сдай 5 слитков до 18:00. Руками тяжело? Завтра дрон привезёт чертежи машин,18:00-ге дейін 5 құйма тапсыр. Қолмен қиын ба? Ертең дрон машиналардың сызбаларын әкеледі,Deliver 5 ingots by 18:00. Hard by hand? Tomorrow the drone brings machine blueprints
+TUT_GOAL,Сдай 5 слитков до 18:00. Линия делает их сама — следи за шкалой склада наверху,18:00-ге дейін 5 құйма тапсыр. Желі оларды өзі жасайды — жоғарыдағы қойма шкаласын бақыла,Deliver 5 ingots by 18:00. The line makes them itself — watch the storage bar at the top
 TUT_D2_DRILL,Дрон привёз чертежи! Выбери бур (6) и поставь его вплотную к руде — ПКМ,"Дрон сызбалар әкелді! Бұрғыны таңда (6) да, кенге тақап қой — оң батырма",The drone brought blueprints! Pick the drill (6) and place it right next to ore — RMB
 TUT_D2_FURNACE,Теперь печь (7): 2 руды + 1 зерно → 1 слиток,Енді пеш (7): 2 кен + 1 дән → 1 құйма,Now the furnace (7): 2 ore + 1 grain → 1 ingot
 TUT_D2_BELT,"Соедини бур, печь и склад конвейером (5). Q — повернуть, вверх — лифт","Бұрғыны, пешті және қойманы конвейермен қос (5). Q — бұру, жоғары — лифт","Link drill, furnace and storage with conveyors (5). Q — rotate, up — lift"
@@ -122,3 +122,10 @@ INTRO_6,"Руками столько не сделать. Ставь буры, �
 INTRO_7,Время пошло.,Уақыт басталды.,The clock is ticking.
 INTRO_SKIP,Пропустить,Өткізу,Skip
 MENU_INTRO,Вступление,Кіріспе,Intro
+TUT_D1_DRILL,Дрон сбросил чертежи и детали! Выбери бур (6) и поставь на рыжий выход руды — ПКМ,"Дрон сызбалар мен бөлшектер тастады! Бұрғыны таңда (6) да, қызғылт кен шыққан жерге қой — оң батырма",The drone dropped blueprints and parts! Pick the drill (6) and place it on the rusty ore outcrop — RMB
+TUT_D1_FURNACE,Теперь печь (7): поставь её между буром и складом,Енді пеш (7): оны бұрғы мен қойманың арасына қой,Now the furnace (7): place it between the drill and the storage
+TUT_D1_BELT,Конвейер (5): зажми ПКМ и протяни ленту от бура к печи и от печи к складу,"Конвейер (5): оң батырманы басып тұрып, таспаны бұрғыдан пешке, пештен қоймаға тарт",Conveyor (5): hold RMB and drag a belt from the drill to the furnace and from the furnace to the storage
+TUT_D1_FUEL,Положи зерно в печь (E). Дальше линия работает без тебя!,Пешке дән сал (E). Әрі қарай желі сенсіз жұмыс істейді!,Put grain into the furnace (E). From here the line works without you!
+TUT_DEEP,"Руда у склада скоро кончится. Копай глубже: в камне жилы богаче, а на самом дне — бесконечные","Қойма жанындағы кен жуырда таусылады. Тереңірек қаз: таста желілер бай, ал ең түбінде — таусылмайды","The ore by the storage will run out soon. Dig deeper: veins in stone are richer, and at the very bottom they never end"
+NOTICE_EARLY_GIFT,"Дрон сбросил посылку: чертежи бура, печи и конвейера!","Дрон сәлемдеме тастады: бұрғы, пеш және конвейер сызбалары!","The drone dropped a parcel: drill, furnace and conveyor blueprints!"
+SLOT_LOCKED_SOON,Сдай первый слиток на склад — дрон сбросит этот чертёж,Қоймаға алғашқы құйманы тапсыр — дрон бұл сызбаны тастайды,Deliver your first ingot to storage — the drone will drop this blueprint

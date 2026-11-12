@@ -15,6 +15,8 @@ const DRILL_B := Vector2i(33, 29)
 const FURNACE_LEFT := Vector2i(7, 10)
 const FURNACE_RIGHT := Vector2i(21, 10)
 const STORAGE := Vector2i(50, 10)
+const FIRST_DRILL := Vector2i(38, 10)
+const FIRST_FURNACE := Vector2i(44, 10)
 
 var _t: TestCase
 var _cost := {}
@@ -42,6 +44,32 @@ func run(t: TestCase, tree: SceneTree) -> void:
 	for furnace in [FURNACE_LEFT, FURNACE_RIGHT]:
 		t.check(float(Sim.get_stats(furnace)["no_fuel"]) < 0.05, "печь %s не простаивает без зерна" % furnace)
 	print("    цена фабрики: %s, машин %d" % [_cost, Sim.get_machines().size()])
+	world.queue_free()
+	_first_line(t, tree)
+
+
+## Первая линия дня 1: бур на рудном выходе у склада, лента, печь, лента, склад. Всё на поверхности, без копания.
+## Посылка дрона (days.json, early_gift) должна покрывать её цену, а квота дня 1 набираться за минуту.
+func _first_line(t: TestCase, tree: SceneTree) -> void:
+	t.group("Первая линия дня 1 на поверхности")
+	var world: Node = load("res://world/World.tscn").instantiate()
+	tree.root.add_child(world)
+	world.start_new()
+	_failed.clear()
+	_cost = {}
+	_place("drill", FIRST_DRILL, Vector2i.RIGHT)
+	_belt(Vector2i(40, 11), Vector2i.RIGHT, 4)
+	_place("furnace", FIRST_FURNACE, Vector2i.RIGHT)
+	_belt(Vector2i(46, 11), Vector2i.RIGHT, 4)
+	t.equal(_failed, [] as Array[String], "бур, печь и 8 лент встают на поверхности без копания")
+	var kit: Dictionary = GameConfig.day(1)["early_gift"]["pockets"]
+	t.check(_cost.keys().all(func(type: String) -> bool: return int(_cost[type]) <= int(kit.get(type, 0))),
+		"посылка дрона %s покрывает цену линии %s" % [kit, _cost])
+	for i in 5:
+		Sim.insert(FIRST_FURNACE, "grain")
+	TestWorld.run(60.0)
+	var ingots := Sim.storage_count("ingot")
+	t.check(ingots >= int(GameConfig.day(1)["quota"]), "за минуту линия привозит на склад %d слитков при квоте дня 1 = %d" % [ingots, GameConfig.day(1)["quota"]])
 	world.queue_free()
 
 

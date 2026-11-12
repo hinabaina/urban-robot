@@ -49,6 +49,17 @@ func output_cell() -> Vector2i:
 	return cell + Vector2i(dx, dy)
 
 
+## Все клетки вплотную к выходной стороне, первой идёт output_cell(). У машины 2x2 их две:
+## игрок может подвести ленту к любой из них (например, по земле, а не на высоте второго тайла).
+func output_cells() -> Array[Vector2i]:
+	var first := output_cell()
+	var cells: Array[Vector2i] = [first]
+	var along := Vector2i(0, 1) if dir.x != 0 else Vector2i(1, 0)
+	for i in range(1, size.y if dir.x != 0 else size.x):
+		cells.append(first + along * i)
+	return cells
+
+
 ## Может ли машина прямо сейчас принять предмет, который движется в направлении from_dir.
 func can_accept(_item: Item, _from_dir: Vector2i) -> bool:
 	return false

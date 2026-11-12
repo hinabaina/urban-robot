@@ -10,10 +10,10 @@ func run(t: TestCase, tree: SceneTree) -> void:
 	world.start_new()
 	var reserves := Sim.veins.list.map(func(vein: Vein) -> int: return vein.reserve)
 	reserves.sort()
-	t.equal(reserves, [-1, 40, 40, 120, 120], "5 жил: 2 в почве по 40, 2 в камне по 120, 1 бесконечная")
+	t.equal(reserves, [-1, 40, 40, 40, 120, 120], "6 жил: 3 в почве по 40 (одна выходит на поверхность у склада), 2 в камне по 120, 1 бесконечная")
 	var sizes := Sim.veins.list.map(func(vein: Vein) -> int: return vein.cells.size())
 	sizes.sort()
-	t.equal(sizes, [6, 6, 12, 12, 20], "размеры жил 3x2, 4x3 и 5x4 тайлов")
+	t.equal(sizes, [6, 6, 6, 12, 12, 20], "размеры жил 3x2 (три), 4x3 и 5x4 тайлов")
 	t.equal(Sim.get_crops().size(), 12, "12 стартовых грядок")
 	var types := Sim.get_machines().map(func(machine: Machine) -> String: return machine.type)
 	t.equal([types.count("storage"), types.count("campfire"), types.count("ladder")], [1, 1, 6],

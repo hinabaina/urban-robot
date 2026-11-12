@@ -95,7 +95,8 @@ func _show_tip(index: int) -> void:
 	if GameState.is_unlocked(id):
 		_tip_text.text = tr("DESC_" + id)
 	else:
-		_tip_text.text = tr("SLOT_LOCKED") % GameConfig.unlock_day(id)
+		var unlock_day := GameConfig.unlock_day(id)
+		_tip_text.text = tr("SLOT_LOCKED_SOON") if unlock_day <= GameState.day else tr("SLOT_LOCKED") % unlock_day
 	_tip.visible = true
 	_tip.reset_size()
 	var slot_rect := _panels[index].get_global_rect()
