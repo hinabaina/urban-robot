@@ -1,7 +1,7 @@
 class_name Furnace
 extends Machine
 ## Печь 2x2: 2 руды + 1 зерно -> 1 слиток за 6 с. GDD «Печь».
-## Владелец: A. Слиток получает by_hand, если хотя бы одно сырьё было тронуто руками.
+## Владелец: A. Слиток получает by_hand, если руда была тронута руками (зерно-топливо не считается).
 
 ## Тип сырья -> список флагов by_hand в порядке поступления.
 var _input: Dictionary = {}
@@ -77,10 +77,12 @@ func _waits_for_fuel() -> bool:
 	return _count(Item.ORE) > 0 and _count(Item.GRAIN) < int(_recipe().get(Item.GRAIN, 0))
 
 
-## Списать сырьё на один слиток. true, если что-то из него было тронуто руками.
+## Списать сырьё на один слиток. true, если руками носили руду. Зерно — топливо: подкинуть его в печь
+## руками не значит сделать слиток руками (иначе до сборщика на 2-й день автоматизация всегда 0%).
 func _consume() -> bool:
 	var touched := false
 	for item_type in _recipe().keys():
 		for i in int(_recipe()[item_type]):
-			touched = _input[item_type].pop_front() or touched
+			var by_hand: bool = _input[item_type].pop_front()
+			touched = touched or (by_hand and item_type != Item.GRAIN)
 	return touched

@@ -25,6 +25,7 @@ func teleport(cell: Vector2i) -> void:
 
 
 func scenario_checks() -> void:
+	Moment.enabled = false   # отдельные проверки двигают время сами; моменты проверяет scenario_tutorial
 	player = main.get_node("Player")
 	world = main.get_node("World")
 	GameState.early_gift_given = true   # посылку дня 1 проверяет scenario_tutorial; здесь она мешала бы счёту карманов
@@ -115,8 +116,8 @@ func _farming() -> void:
 	await teleport(Vector2i(17, 11))
 	await press(Actions.slot(2))
 	mouse_to_cell(plot + Vector2i.UP)
-	await press(Actions.PLACE)
-	check("plant seed costs 1 grain", GameState.pockets["grain"] == 8 and _stage(plot) == 1, [GameState.pockets, _stage(plot)])
+	await click(Actions.USE)      # левой кнопкой: на Mac правую нажать неудобно
+	check("LMB plants a seed, seeds are free", GameState.pockets["grain"] == 9 and _stage(plot) == 1, [GameState.pockets, _stage(plot)])
 	await press(Actions.slot(1))
 	await click(Actions.USE, 0.5)
 	check("empty can does not water", not _wet(plot))
@@ -135,7 +136,7 @@ func _farming() -> void:
 	check("crop is ripe after 30 s wet", _stage(plot) == 4, _stage(plot))
 	await press(Actions.slot(0))
 	await click(Actions.USE, 0.45)
-	check("harvest gives 3 grain", GameState.pockets["grain"] == 11 and _stage(plot) == 0, [GameState.pockets, _stage(plot)])
+	check("harvest gives 3 grain", GameState.pockets["grain"] == 12 and _stage(plot) == 0, [GameState.pockets, _stage(plot)])
 	check("farmland is not diggable", world.kind_at(plot) == "farmland")
 
 
@@ -230,6 +231,13 @@ func scenario_tutorial() -> void:
 	await wait(0.1)
 	check("step 5 done: first ingot in storage brings the parcel", step.call() == 5 and GameState.is_unlocked("drill")
 		and GameState.is_unlocked("furnace") and GameState.is_unlocked("conveyor"), [step.call(), GameState.unlocked])
+	var moment: Moment = main.get_node("UI/Moment")
+	check("parcel plays a cinematic moment that freezes the player", moment.is_playing() and player.frozen)
+	await wait(1.6)
+	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/moment_parcel.png")
+	while moment.is_playing():
+		await wait(0.1)
+	check("after the moment the player can move again", not player.frozen and DayCycle.running)
 	check("parcel has parts for the first line", GameState.pockets["ingot"] == 5 and GameState.pockets["ore"] >= 24, GameState.pockets)
 	await teleport(Vector2i(41, 11))
 	await press(Actions.slot(5))
@@ -256,6 +264,10 @@ func scenario_tutorial() -> void:
 		seconds += 1.0
 	check("step 9 done: the line delivers an ingot by itself within 40 s", step.call() == 9 and Sim.storage_count("ingot") >= 2,
 		[step.call(), Sim.storage_count("ingot"), seconds])
+	check("first automatic ingot plays its moment", GameState.moments_seen.has("auto"), GameState.moments_seen)
+	check("automation bar is live", GameState.live_automation() > 0.0, [GameState.made_auto, GameState.made_total])
+	while moment.is_playing():
+		await wait(0.1)
 	await wait(10.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
 	while Sim.storage_count("ingot") < GameState.quota() and seconds < 120.0:

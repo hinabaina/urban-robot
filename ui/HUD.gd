@@ -39,6 +39,7 @@ func _ready() -> void:
 	GameState.trust_changed.connect(_on_trust)
 	GameState.pockets_changed.connect(_on_pockets)
 	GameState.day_settled.connect(func(_r: Dictionary) -> void: _on_automation())
+	Sim.item_delivered.connect(func(_type: String, _by_hand: bool) -> void: _on_automation.call_deferred())
 	DayCycle.speed_changed.connect(func(_s: float) -> void: _on_speed())
 	_on_quota(Sim.storage_count("ingot"), GameState.display_quota())
 	_on_trust(GameState.trust)
@@ -154,8 +155,11 @@ func _pop(node: Control, scale_to: float, flash: Color) -> void:
 
 
 func _on_automation() -> void:
-	_auto_label.text = tr("HUD_AUTOMATION") % int(round(GameState.automation() * 100.0))
-	_auto_bar.value = GameState.automation()
+	var value := GameState.live_automation()
+	if not is_equal_approx(value, _auto_bar.value) and value > _auto_bar.value:
+		_pop(_auto_bar, 1.15, UiKit.GOOD)
+	_auto_label.text = tr("HUD_AUTOMATION") % int(round(value * 100.0))
+	create_tween().tween_property(_auto_bar, "value", value, 0.4).set_trans(Tween.TRANS_SINE)
 
 
 func _on_speed() -> void:

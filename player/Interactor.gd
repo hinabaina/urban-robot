@@ -55,9 +55,13 @@ func _interact(machine: Dictionary) -> void:
 			else:
 				GameState.notify("NOTICE_CAMPFIRE_NEED")
 		"furnace":
+			# Сначала топливо. Руду из карманов кладём, только если зерна дать не вышло: иначе E «портит»
+			# слитки линии ручной рудой, и автоматизация не растёт.
 			_collect(Sim.take(cell), cell)
-			_give(cell, "ore", GameState.pockets["ore"])
-			_give(cell, "grain", GameState.pockets["grain"])
+			var grain_before: int = GameState.pockets["grain"]
+			_give(cell, "grain", grain_before)
+			if GameState.pockets["grain"] == grain_before:
+				_give(cell, "ore", GameState.pockets["ore"])
 		_:
 			_collect(Sim.take(cell), cell)
 	Audio.play("interact")
