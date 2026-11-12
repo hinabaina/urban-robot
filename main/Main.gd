@@ -59,6 +59,7 @@ func _ready() -> void:
 	$Juice.setup(player, world, machine_view, tool_user)
 	$Decor.setup(world)
 	$Lights.setup(player, world)
+	$Darkness.setup(player, machine_view)
 	var moment := Moment.new()
 	moment.name = "Moment"
 	$UI.add_child(moment)

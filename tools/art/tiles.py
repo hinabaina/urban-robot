@@ -17,8 +17,8 @@ def speckle(img, r, dark, light, n_dark, n_light):
 def soil(seed):
     r = rng(seed)
     img = new(T, T, "s2")
-    speckle(img, r, "s1", "s3", 16, 12)
-    for _ in range(2):  # мелкие камешки
+    speckle(img, r, "s1", "s3", 7, 5)    # спокойная земля: руда и машины на ней читаются лучше
+    for _ in range(1):  # мелкие камешки
         x, y = r.randrange(1, T - 2), r.randrange(1, T - 2)
         px(img, x, y, "s4"); px(img, x + 1, y, "s4"); px(img, x, y + 1, "s1"); px(img, x + 1, y + 1, "s1")
     return img
@@ -27,13 +27,16 @@ def soil(seed):
 def grass(seed):
     r = rng(seed)
     img = soil(seed)
-    rect(img, 0, 0, T, 3, "g2")
+    # Толстый дёрн с ярким краем и тёмной кромкой: верх земли чётко отделён от почвы под ним.
+    rect(img, 0, 0, T, 4, "g2")
     for x in range(T):
-        px(img, x, 0, "g3" if r.random() < 0.6 else "g4")
-        depth = 3 + (1 if r.random() < 0.5 else 0) + (1 if r.random() < 0.2 else 0)
-        for y in range(3, depth):
+        px(img, x, 0, "g4" if r.random() < 0.5 else "g3")
+        px(img, x, 1, "g3" if r.random() < 0.7 else "g2")
+        depth = 4 + (1 if r.random() < 0.55 else 0) + (1 if r.random() < 0.25 else 0)
+        for y in range(4, depth):
             px(img, x, y, "g2")
         px(img, x, depth, "g1")
+        px(img, x, depth + 1, "s1")
     return img
 
 
@@ -55,7 +58,7 @@ def stone(seed):
 def deep(seed):
     r = rng(seed)
     img = new(T, T, "d2")
-    speckle(img, r, "d1", "d3", 14, 8)
+    speckle(img, r, "d1", "d3", 8, 5)
     for _ in range(3):  # диагональные прожилки
         x, y = r.randrange(T), r.randrange(T)
         for i in range(r.randrange(3, 6)):
@@ -75,7 +78,7 @@ def bedrock(seed):
 def ore(base, seed):
     """Порода с крупными рыжими самородками: руду должно быть видно издалека."""
     r = rng(seed)
-    img = base(seed)
+    img = _darken_rgba(base(seed), 0.8)        # порода под рудой темнее: самородки светятся на её фоне
     spots = [(1, 1, 5, 4), (9, 2, 5, 5), (3, 8, 6, 5), (11, 10, 4, 4)]
     for x, y, w, h in spots:
         x += r.randrange(0, 2); y += r.randrange(0, 2)
@@ -89,7 +92,7 @@ def ore(base, seed):
             px(img, x + i, y, "o3")
         for j in range(1, h - 1):
             px(img, x + w - 1, y + j, "o1")
-        px(img, x + 1, y + 1, "o4"); px(img, x + 2, y + 1, "o3")
+        px(img, x + 1, y + 1, "W"); px(img, x + 2, y + 1, "o4")   # блик
     return img
 
 

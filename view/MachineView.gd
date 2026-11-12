@@ -32,6 +32,10 @@ func _ready() -> void:
 	Sim.machine_state_changed.connect(_on_state)
 
 
+func campfire_glowing() -> bool:
+	return _campfire_lit > 0.0
+
+
 func light_campfire(_cell: Vector2i) -> void:
 	_campfire_lit = CAMPFIRE_GLOW_TIME
 

@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 const HALF_HEIGHT := 10.0   # половина высоты фигуры столкновений (Shape в Player.tscn)
 const PERCH_LIFT := 0.5
+const SHADOW := Color(0.05, 0.04, 0.08, 0.35)
 const FRAMES := {"idle": [0, 1], "walk": [2, 3, 4, 5], "jump": [6], "climb": [7, 8]}
 
 var frozen := false          # игрок спит или идёт заставка
@@ -94,6 +95,16 @@ func _physics_process(delta: float) -> void:
 		facing = 1 if side > 0.0 else -1
 	move_and_slide()
 	_animate(delta, supported)
+	queue_redraw()
+
+
+## Мягкая тень под ногами: герой отделяется от земли и от машин за спиной.
+func _draw() -> void:
+	if climbing or not is_on_floor():
+		return
+	var y := HALF_HEIGHT - 1.0
+	draw_rect(Rect2(-5, y, 10, 2), SHADOW)
+	draw_rect(Rect2(-3, y + 2, 6, 1), SHADOW)
 
 
 func _ladder_at(point: Vector2) -> bool:
