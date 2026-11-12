@@ -101,3 +101,23 @@
 - `player/ToolUser.gd`: `_blow_campfire` сам кладёт сырьё из карманов, если костёр пуст (`_load_campfire`), иначе показывает `NOTICE_CAMPFIRE_NEED` и не зажигает огонь. Шлёт `progress(cell, ratio, "campfire")`, поэтому над костром видна полоска готовности. E работает как раньше.
 - `sim/`: новые `Sim.campfire_loaded()` и `Sim.campfire_progress()` (в CONTRACT.md).
 - `tools/b_smoke/checks.gd`: две проверки в `_hands()`.
+
+
+## 12 ноября, 08:30, от A → B: первый день переделан, отдача и живая степь
+
+С разрешения Чингиза («попробуй сделай всё, что сам думаешь правильным»). Он сыграл и сказал: скучно, непонятно, пусто. `SimTest` 179 ок, `tools/b_smoke` `checks` и `tutorial` проходят целиком.
+
+**Машины в первый день**
+- `data/days.json`: у дня 1 появился `early_gift` (чертежи конвейера, бура, печи + 5 слитков и 24 руды). Его выдаёт `GameState._check_early_gift()` в момент, когда на складе появился первый слиток; сигнал `GameState.gift_arrived(gift)`, событие обучения `early_gift`. Вечерний `gift` дня 1 теперь открывает поливалку и сборщик, у дня 2 подарка нет.
+- `world/layout.txt` (+ пересобранные `World.tscn`, `tileset.tres`): выход руды на поверхность, x 38–40, строки 12–13. **`build_world.gd` под 4.7.2 теряет `script` у корня `World.tscn`** — после пересборки верни строки `ext_resource ... id="0_loader"` и `script = ExtResource("0_loader")`.
+- `data/tutorial.json`, `data/translations.csv`: день 1 — руками один слиток, потом бур, печь, лента, зерно в печь; ферма переехала в день 2. Новые строки `TUT_D1_*`, `TUT_DEEP`, `NOTICE_EARLY_GIFT`, `NOTICE_QUOTA_DONE`, `SLOT_LOCKED_SOON`.
+- `autoload/GameConfig.gd`: `unlock_day` учитывает `early_gift`. `ui/Hotbar.gd`: подсказка закрытого слота.
+- `sim/`: `Machine.output_cells()` — машина 2×2 отдаёт предмет в любую клетку у выходной стороны (раньше только в верхнюю), поэтому лента по земле принимает от бура и печи.
+- `tools/b_smoke/checks.gd`: `scenario_checks` начинает с `GameState.early_gift_given = true` (старые проверки не ждут посылку); `scenario_tutorial` переписан под новый день 1. В `shot.gd` новый сценарий `line` (линия первого дня, 4-й аргумент — час суток).
+
+**Отдача и графика** (новые файлы мои: `view/Juice.gd`, `view/Decor.gd`, `view/Lights.gd`, узлы добавлены в `Main.tscn`, в `Main.gd` три вызова `setup`)
+- `view/WorldView.gd`: убраны `popup_item` и `show_harvest` — «+1» и полёт предмета в карман теперь рисует `Juice`. Крошки и трещины остались у тебя.
+- `view/MachineView.gd`: `bump(cell)` (склад подпрыгивает при сдаче) и частицы работающих машин (`WORK_FX`: дым печи, пыль бура, брызги поливалки).
+- `view/Background.gd`: 13 облаков в два слоя вместо 4, птицы, ореол солнца и луны, `world_tint()` для огней, `light_mask = 0` (огни не светят на небо).
+- `ui/HUD.gd`: счётчик кармана и полоска склада подпрыгивают при прибавке (`_pop`). `ui/Hotbar.gd`: открывшиеся слоты вспыхивают (`_celebrate`). `ui/Messages.gd`: баннер посылки и баннер «Норма дня выполнена!».
+- Тряска камеры идёт через `player.camera.offset` и только пока игрок не заморожен, поэтому `_play_launch` она не мешает.

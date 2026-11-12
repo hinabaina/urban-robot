@@ -1,9 +1,7 @@
-# Обновляет тайлы по сигналам симуляции и показывает копание: трещины, крошки, «+1». Владелец: B.
+# Обновляет тайлы по сигналам симуляции и показывает копание: трещины и крошки. Владелец: B.
 extends Node2D
 
 const CRACK_FRAMES := 3
-const POPUP_RISE := 14.0
-const POPUP_TIME := 0.7
 const DEBRIS_COUNT := 6
 const BAR_SIZE := Vector2(12, 2)
 const BAR_OFFSET := Vector2(-6, -12)
@@ -52,27 +50,9 @@ func _draw() -> void:
 	draw_rect(Rect2(_bar_pos, Vector2(BAR_SIZE.x * _bar_ratio, BAR_SIZE.y)), Color("f4d34f"))
 
 
-## Тайл выкопан или добыта руда: крошки и всплывающая иконка.
+## Тайл выкопан или добыта руда: крошки. «+1» и полёт предмета в карман показывает Juice.
 func show_dug(cell: Vector2i, got_ore: bool) -> void:
-	var pos := TileCatalog.cell_center(cell)
-	_debris(pos, DEBRIS_COLOR.get("ore" if got_ore else _dug_kind, DEBRIS_COLOR["soil"]))
-	if got_ore:
-		popup_item(pos, "ore")
-
-
-func show_harvest(plot: Vector2i, _count: int) -> void:
-	popup_item(TileCatalog.cell_center(plot + Vector2i.UP), "grain")
-
-
-func popup_item(pos: Vector2, type: String) -> void:
-	var sprite := Sprite2D.new()
-	sprite.texture = Sprites.item(type)
-	sprite.position = pos
-	add_child(sprite)
-	var tween := create_tween()
-	tween.tween_property(sprite, "position:y", pos.y - POPUP_RISE, POPUP_TIME).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(sprite, "modulate:a", 0.0, POPUP_TIME).set_ease(Tween.EASE_IN)
-	tween.tween_callback(sprite.queue_free)
+	_debris(TileCatalog.cell_center(cell), DEBRIS_COLOR.get("ore" if got_ore else _dug_kind, DEBRIS_COLOR["soil"]))
 
 
 func _debris(pos: Vector2, color: Color) -> void:

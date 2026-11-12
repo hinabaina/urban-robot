@@ -39,7 +39,6 @@ func _ready() -> void:
 	tool_user.progress.connect(world_view.show_progress)
 	tool_user.stopped.connect(world_view.hide_progress)
 	tool_user.dug.connect(world_view.show_dug)
-	tool_user.harvested.connect(world_view.show_harvest)
 	tool_user.campfire_blown.connect(machine_view.light_campfire)
 	interactor.demolish_progress.connect(machine_view.show_demolish)
 	interactor.demolish_stopped.connect(machine_view.clear_demolish)
@@ -57,6 +56,9 @@ func _ready() -> void:
 	rocket.position = world.marker_pos("Rocket") + Vector2(TileCatalog.TILE, TileCatalog.TILE) * 0.5
 	drone.hover_point = MachineCatalog.center("storage", world.marker_cell("Storage")) - Vector2(0, drone.HOVER_ABOVE)
 	player.limit_camera(world.world_rect())
+	$Juice.setup(player, world, machine_view, tool_user)
+	$Decor.setup(world)
+	$Lights.setup(player, world)
 	_wake_up()
 	GameState.emit_quota()
 	DayCycle.reset()

@@ -128,4 +128,5 @@ TUT_D1_BELT,Конвейер (5): зажми ПКМ и протяни ленту
 TUT_D1_FUEL,Положи зерно в печь (E). Дальше линия работает без тебя!,Пешке дән сал (E). Әрі қарай желі сенсіз жұмыс істейді!,Put grain into the furnace (E). From here the line works without you!
 TUT_DEEP,"Руда у склада скоро кончится. Копай глубже: в камне жилы богаче, а на самом дне — бесконечные","Қойма жанындағы кен жуырда таусылады. Тереңірек қаз: таста желілер бай, ал ең түбінде — таусылмайды","The ore by the storage will run out soon. Dig deeper: veins in stone are richer, and at the very bottom they never end"
 NOTICE_EARLY_GIFT,"Дрон сбросил посылку: чертежи бура, печи и конвейера!","Дрон сәлемдеме тастады: бұрғы, пеш және конвейер сызбалары!","The drone dropped a parcel: drill, furnace and conveyor blueprints!"
+NOTICE_QUOTA_DONE,"Норма дня выполнена!","Күндік норма орындалды!","Daily quota met!"
 SLOT_LOCKED_SOON,Сдай первый слиток на склад — дрон сбросит этот чертёж,Қоймаға алғашқы құйманы тапсыр — дрон бұл сызбаны тастайды,Deliver your first ingot to storage — the drone will drop this blueprint

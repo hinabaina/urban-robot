@@ -10,6 +10,13 @@ const CAMPFIRE_GLOW_TIME := 0.25
 const ICON_GAP := 7.0
 const ARROW_INSET := 4.0         # стрелка выхода сидит на краю машины, внутри её контура
 
+# Частицы работающей машины: смещение от центра, цвет, скорость, разброс, тяжесть, время жизни, число, размер.
+const WORK_FX := {
+	"furnace": [Vector2(4, -17), Color(0.8, 0.8, 0.85, 0.55), 14.0, 18.0, -22.0, 1.5, 7, 3.0],
+	"drill": [Vector2(0, 14), Color("a8744e"), 45.0, 80.0, 220.0, 0.4, 6, 1.5],
+	"sprinkler": [Vector2(0, -5), Color("7cc4f2"), 55.0, 70.0, 220.0, 0.6, 8, 1.5],
+}
+
 var _nodes := {}      # клетка-якорь -> {type, sprite, icon, state}
 var _time := 0.0
 var _campfire_lit := 0.0
@@ -34,6 +41,15 @@ func show_demolish(cell: Vector2i, _type: String, ratio: float) -> void:
 	if _nodes.has(cell):
 		_nodes[cell]["sprite"].scale = Vector2.ONE * (1.0 - 0.25 * ratio)
 		_nodes[cell]["sprite"].self_modulate = Color.WHITE.lerp(BLOCKED_TINT, ratio)
+
+
+## Машина «подпрыгивает»: что-то приняла или выдала.
+func bump(cell: Vector2i) -> void:
+	if _nodes.has(cell):
+		var sprite: Sprite2D = _nodes[cell]["sprite"]
+		var tween := create_tween()
+		tween.tween_property(sprite, "scale", Vector2(1.12, 0.9), 0.06)
+		tween.tween_property(sprite, "scale", Vector2.ONE, 0.12)
 
 
 func clear_demolish() -> void:
@@ -61,17 +77,46 @@ func _on_placed(cell: Vector2i, type: String, dir: Vector2i) -> void:
 		arrow.rotation = Vector2(dir).angle()
 		arrow.modulate.a = 0.85
 		sprite.add_child(arrow)
-	_nodes[cell] = {"type": type, "sprite": sprite, "icon": icon, "state": Sim.State.IDLE}
+	_nodes[cell] = {"type": type, "sprite": sprite, "icon": icon, "state": Sim.State.IDLE, "fx": _make_fx(type, sprite.position)}
 	sprite.scale = Vector2.ZERO   # «клац»: 0 -> 1,1 -> 1
 	var tween := create_tween()
 	tween.tween_property(sprite, "scale", Vector2.ONE * 1.1, 0.08)
 	tween.tween_property(sprite, "scale", Vector2.ONE, 0.06)
 
 
+## Дым печи, пыль бура, брызги поливалки: идут, пока машина работает. У остальных машин null.
+func _make_fx(type: String, center: Vector2) -> CPUParticles2D:
+	if not WORK_FX.has(type):
+		return null
+	var fx: Array = WORK_FX[type]
+	var particles := CPUParticles2D.new()
+	particles.position = center + fx[0]
+	particles.z_index = 2
+	particles.color = fx[1]
+	particles.initial_velocity_min = fx[2] * 0.5
+	particles.initial_velocity_max = fx[2]
+	particles.direction = Vector2.UP
+	particles.spread = fx[3]
+	particles.gravity = Vector2(0, fx[4])
+	particles.lifetime = fx[5]
+	particles.amount = fx[6]
+	particles.scale_amount_min = 1.0
+	particles.scale_amount_max = fx[7]
+	var fade := Gradient.new()
+	fade.set_color(0, Color.WHITE)
+	fade.set_color(1, Color(1, 1, 1, 0))
+	particles.color_ramp = fade
+	particles.emitting = false
+	add_child(particles)
+	return particles
+
+
 func _on_removed(cell: Vector2i) -> void:
 	if _nodes.has(cell):
 		_nodes[cell]["sprite"].queue_free()
 		_nodes[cell]["icon"].queue_free()
+		if _nodes[cell]["fx"]:
+			_nodes[cell]["fx"].queue_free()
 		_nodes.erase(cell)
 
 
@@ -80,6 +125,8 @@ func _on_state(cell: Vector2i, state: int) -> void:
 		return
 	var node: Dictionary = _nodes[cell]
 	node["state"] = state
+	if node["fx"]:
+		node["fx"].emitting = state == Sim.State.WORKING
 	var icon: Sprite2D = node["icon"]
 	icon.visible = _icon_of_state.has(state)
 	if icon.visible:

@@ -15,6 +15,7 @@ var _badges: Array[Label] = []     # число в углу слота: вода
 var _tip: PanelContainer
 var _tip_title: Label
 var _tip_text: Label
+var _was_open: Array[bool] = []    # какие слоты были открыты при прошлой перерисовке
 var _normal := UiKit.box("ui_slot", 4)
 var _selected := UiKit.box("ui_slot_selected", 4)
 
@@ -111,8 +112,23 @@ func _refresh() -> void:
 		_panels[i].add_theme_stylebox_override("panel", _selected if i == _build.selected else _normal)
 		_icons[i].modulate = Color.WHITE if open else LOCKED_TINT
 		_locks[i].visible = not open
+		if i < _was_open.size() and open and not _was_open[i]:
+			_celebrate(i)
 		_badges[i].text = str(GameState.water) if id == "can" else ""
 		_fill_cost(_costs[i], MachineCatalog.cost(id) if open else {})
+	_was_open.assign(_build.slots.map(func(id: String) -> bool: return GameState.is_unlocked(id)))
+
+
+## Слот только что открылся: подпрыгивает и вспыхивает, слоты по очереди.
+func _celebrate(index: int) -> void:
+	var panel := _panels[index]
+	panel.pivot_offset = panel.size * 0.5
+	var tween := panel.create_tween()
+	tween.tween_interval(0.12 * (index % 5))
+	tween.tween_property(panel, "scale", Vector2.ONE * 1.35, 0.12).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(panel, "modulate", Color(1.6, 1.4, 0.8), 0.12)
+	tween.tween_property(panel, "scale", Vector2.ONE, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BOUNCE)
+	tween.parallel().tween_property(panel, "modulate", Color.WHITE, 0.5)
 
 
 func _fill_cost(row: HBoxContainer, cost: Dictionary) -> void:

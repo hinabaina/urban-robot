@@ -19,6 +19,8 @@ var _pockets := {}            # тип -> Label
 var _auto_label: Label
 var _auto_bar: ProgressBar
 var _speed_buttons := {}      # скорость -> Button
+var _shown_pockets := {}      # тип -> число, показанное в прошлый раз (чтобы заметить прибавку)
+var _shown_quota := -1
 
 
 func _ready() -> void:
@@ -120,6 +122,9 @@ func _on_quota(have: int, need: int) -> void:
 	_quota_text.text = tr("HUD_QUOTA") % [have, need]
 	var done := have >= need
 	_quota_text.add_theme_color_override("font_color", UiKit.GOOD if done else UiKit.TEXT)
+	if have > _shown_quota and _shown_quota >= 0:
+		_pop(_quota_bar, 1.12, UiKit.GOOD if done else UiKit.ACCENT)
+	_shown_quota = have
 
 
 func _on_trust(value: int) -> void:
@@ -133,6 +138,19 @@ func _on_pockets() -> void:
 		_pockets[type].text = str(count)
 		var full := count >= GameConfig.pocket_limit(type)
 		_pockets[type].add_theme_color_override("font_color", UiKit.ACCENT if full else UiKit.TEXT)
+		if count > int(_shown_pockets.get(type, count)):
+			_pop(_pockets[type], 1.45, UiKit.GOOD)
+		_shown_pockets[type] = count
+
+
+## Отдача: виджет на миг увеличивается и вспыхивает цветом.
+func _pop(node: Control, scale_to: float, flash: Color) -> void:
+	node.pivot_offset = node.size * 0.5
+	node.scale = Vector2.ONE * scale_to
+	node.modulate = flash.lightened(0.3)
+	var tween := node.create_tween().set_parallel()
+	tween.tween_property(node, "scale", Vector2.ONE, 0.25).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(node, "modulate", Color.WHITE, 0.3)
 
 
 func _on_automation() -> void:

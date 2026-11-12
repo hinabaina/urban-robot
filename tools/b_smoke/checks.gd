@@ -233,12 +233,12 @@ func scenario_tutorial() -> void:
 	check("parcel has parts for the first line", GameState.pockets["ingot"] == 5 and GameState.pockets["ore"] >= 24, GameState.pockets)
 	await teleport(Vector2i(41, 11))
 	await press(Actions.slot(5))
-	mouse_to_cell(Vector2i(38, 10))
+	mouse_to_world(TileCatalog.cell_center(Vector2i(38, 10)) + Vector2(4, 4))   # не на границе клеток призрака 2x2
 	await press(Actions.PLACE)
 	check("step 6 done: drill stands on the surface outcrop", step.call() == 6 and MachineCatalog.find(Vector2i(38, 10)).get("type") == "drill",
 		[step.call(), Sim.can_place("drill", Vector2i(38, 10), Vector2i.RIGHT)])
 	await press(Actions.slot(6))
-	mouse_to_cell(Vector2i(44, 10))
+	mouse_to_world(TileCatalog.cell_center(Vector2i(44, 10)) + Vector2(4, 4))
 	await press(Actions.PLACE)
 	check("step 7 done: furnace placed", step.call() == 7, step.call())
 	await press(Actions.slot(4))

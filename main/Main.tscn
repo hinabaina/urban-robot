@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://main/Main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://world/World.tscn" id="2"]
@@ -22,6 +22,11 @@
 [ext_resource type="Script" path="res://ui/InfoPage.gd" id="20"]
 [ext_resource type="Script" path="res://view/XRay.gd" id="21"]
 
+[ext_resource type="Script" path="res://view/Juice.gd" id="22"]
+
+[ext_resource type="Script" path="res://view/Decor.gd" id="23"]
+[ext_resource type="Script" path="res://view/Lights.gd" id="24"]
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
 
@@ -29,6 +34,9 @@ script = ExtResource("1")
 script = ExtResource("4")
 
 [node name="World" parent="." instance=ExtResource("2")]
+
+[node name="Decor" type="Node2D" parent="."]
+script = ExtResource("23")
 
 [node name="WorldView" type="Node2D" parent="."]
 script = ExtResource("5")
@@ -50,6 +58,12 @@ script = ExtResource("8")
 
 [node name="Drone" type="Node2D" parent="."]
 script = ExtResource("9")
+
+[node name="Lights" type="Node2D" parent="."]
+script = ExtResource("24")
+
+[node name="Juice" type="Node2D" parent="."]
+script = ExtResource("22")
 
 [node name="Player" parent="." instance=ExtResource("3")]
 
