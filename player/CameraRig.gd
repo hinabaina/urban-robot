@@ -4,6 +4,7 @@ extends Camera2D
 
 const SURFACE_Y := 12.0 * 16.0     # верх земли в пикселях мира (строка 12)
 const UNDERGROUND_FROM := 8.0      # ноги ниже поверхности на столько пикселей — уже шахта
+const SHAKE_BASE_ZOOM := 2.0
 
 var shake_offset := Vector2.ZERO   # тряска от Juice; кино-моменты двигают offset, они не мешают друг другу
 
@@ -12,6 +13,7 @@ var _target: Node2D
 var _look := Vector2.ZERO          # куда смотрим относительно героя (плавно)
 var _pos := Vector2.ZERO           # сглаженная точка следования (без тряски)
 var _bounds := Rect2()
+var _anchor_y := 0.0               # высота, за которой камера следит по вертикали (земля под героем)
 
 
 func _ready() -> void:
@@ -39,7 +41,8 @@ func snap() -> void:
 	if _target == null:
 		return
 	_look = _wanted_look()
-	_pos = _clamp(_target.global_position + _look)
+	_anchor_y = _target.global_position.y
+	_pos = _clamp(_follow_point() + _look)
 	global_position = _pos
 
 
@@ -47,8 +50,24 @@ func _process(delta: float) -> void:
 	if _target == null:
 		return
 	_look = _look.lerp(_wanted_look(), 1.0 - exp(-float(_cfg["look_speed"]) * delta))
-	_pos = _pos.lerp(_clamp(_target.global_position + _look), 1.0 - exp(-float(_cfg["follow_speed"]) * delta))
-	global_position = _pos + shake_offset
+	_update_anchor()
+	_pos = _pos.lerp(_clamp(_follow_point() + _look), 1.0 - exp(-float(_cfg["follow_speed"]) * delta))
+	# Тряска задана в пикселях мира под старый зум 2; на крупном зуме гасим её, чтобы на экране размах был прежним.
+	global_position = _pos + shake_offset * (SHAKE_BASE_ZOOM / zoom.x)
+
+
+## Как в Terraria: в прыжке камера по вертикали стоит, едет только на земле, на лестнице, при падении
+## ниже прежней опоры или если герой поднялся заметно выше (например, запрыгнул на машину).
+func _update_anchor() -> void:
+	var y := _target.global_position.y
+	var grounded: bool = _target.is_on_floor() if _target.has_method("is_on_floor") else true
+	var climbing: bool = _target.get("climbing") == true
+	if grounded or climbing or y > _anchor_y or _anchor_y - y > float(_cfg["jump_follow_px"]):
+		_anchor_y = y
+
+
+func _follow_point() -> Vector2:
+	return Vector2(_target.global_position.x, _anchor_y)
 
 
 ## На поверхности смотрим выше героя (юрта, небо), в шахте — ниже ног (руда под ним), в беге — чуть вперёд.
@@ -58,7 +77,8 @@ func _wanted_look() -> Vector2:
 	var underground := feet > SURFACE_Y + UNDERGROUND_FROM
 	var y := float(_cfg["look_down_tiles"]) * tile if underground else -float(_cfg["look_up_tiles"]) * tile
 	var vx: float = _target.velocity.x if "velocity" in _target else 0.0
-	var x := signf(vx) * float(_cfg["lead_tiles"]) * tile if absf(vx) > 1.0 else _look.x * 0.98
+	# Остановился — камера тоже стоит: иначе мир ползёт под неподвижным курсором и машина встаёт не туда.
+	var x := signf(vx) * float(_cfg["lead_tiles"]) * tile if absf(vx) > 1.0 else _look.x
 	return Vector2(x, y)
 
 
