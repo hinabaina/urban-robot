@@ -255,3 +255,17 @@ func scenario_guide() -> void:
 	var book: GuideBook = main.get_node("UI/GuideBook")
 	book.toggle()
 	book.open_chapter(int(OS.get_cmdline_user_args()[3]) if OS.get_cmdline_user_args().size() > 3 else 2)
+
+
+## Чистый кадр для презентации: час, клетка героя, 1 — спрятать интерфейс. shot.sh out.png 1 clean 7.5 24 11 1
+func scenario_clean() -> void:
+	var args := OS.get_cmdline_user_args()
+	DayCycle.hour = float(args[3])
+	var player: CharacterBody2D = main.get_node("Player")
+	player.global_position = TileCatalog.cell_center(Vector2i(int(args[4]), int(args[5]))) - Vector2(0, 2)
+	main.get_node("UI/Tutorial")._finish()
+	if args.size() > 6 and args[6] == "1":
+		main.get_node("UI").visible = false
+	await get_tree().physics_frame
+	player.camera.snap()
+	DayCycle.running = false
