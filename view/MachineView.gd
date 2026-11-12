@@ -71,7 +71,7 @@ func _on_placed(cell: Vector2i, type: String, dir: Vector2i) -> void:
 	add_child(sprite)
 	var icon := Sprite2D.new()
 	icon.visible = false
-	icon.z_index = 3
+	icon.z_index = 6       # над темнотой шахты: значок простоя важнее всего там, где темно
 	icon.position = sprite.position - Vector2(0, sprite.texture.get_height() * 0.5 + ICON_GAP)
 	add_child(icon)
 	if GameConfig.player()["directional"].has(type) and type != "conveyor":
