@@ -8,6 +8,8 @@ const ARROW_SCALE := 3.0
 const ARROW_GAP := 26.0            # стрелка висит над целью
 const ARROW_BOB := 5.0
 const EDGE := 40.0                 # отступ стрелки от края экрана, если цель не видна
+const SHOW_TIME := 7.0             # сколько секунд плашка видна, потом тает (стрелка остаётся)
+const FADE_TIME := 0.6
 
 var _player: CharacterBody2D
 var _world: Node2D
@@ -18,6 +20,7 @@ var _events := {}                  # события, случившиеся за
 var _walked := 0.0
 var _timer := 0.0
 var _last_x := 0.0
+var _shown := 0.0                  # сколько секунд показана плашка текущего шага
 var _panel: PanelContainer
 var _text: Label
 var _arrow: TextureRect
@@ -69,6 +72,9 @@ func _begin_step() -> void:
 	_walked = 0.0
 	_timer = 0.0
 	_last_x = _player.global_position.x
+	_shown = 0.0
+	_panel.visible = true
+	_panel.modulate.a = 1.0
 	visible = is_active()
 	if is_active():
 		_text.text = tr(_steps[_index]["text"])
@@ -90,12 +96,21 @@ func _process(delta: float) -> void:
 	_walked += absf(_player.global_position.x - _last_x)
 	_last_x = _player.global_position.x
 	_timer += delta
+	_fade_panel(delta)
 	var step: Dictionary = _steps[_index]
 	if _is_done(step["done"]):
 		_index += 1
 		_begin_step()
 		return
 	_place_arrow(step.get("target", {}))
+
+
+## Плашка не висит над полем весь шаг: через SHOW_TIME секунд она тает и прячется.
+func _fade_panel(delta: float) -> void:
+	_shown += delta
+	if _shown > SHOW_TIME:
+		_panel.modulate.a = clampf(1.0 - (_shown - SHOW_TIME) / FADE_TIME, 0.0, 1.0)
+		_panel.visible = _panel.modulate.a > 0.0
 
 
 func _is_done(done: Dictionary) -> bool:

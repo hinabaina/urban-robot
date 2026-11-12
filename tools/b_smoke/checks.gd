@@ -100,6 +100,13 @@ func _movement() -> void:
 	check("climb up and stand on ladder top", absf(player.feet_y() - 192.0) < 2.0, player.feet_y())
 	await wait(0.3)
 	check("stays on ladder top", absf(player.feet_y() - 192.0) < 2.0, player.feet_y())
+	var right_edge := float(TileCatalog.MAP_SIZE.x * TileCatalog.TILE)
+	await teleport(Vector2i(1, 11))
+	await hold(Actions.LEFT, 1.0)
+	check("invisible wall at the left edge", player.global_position.x >= 5.0 and absf(player.feet_y() - 192.0) < 2.0, player.global_position)
+	await teleport(Vector2i(TileCatalog.MAP_SIZE.x - 2, 11))
+	await hold(Actions.RIGHT, 1.0)
+	check("invisible wall at the right edge", player.global_position.x <= right_edge - 5.0 and absf(player.feet_y() - 192.0) < 2.0, player.global_position)
 
 
 func _digging() -> void:
@@ -253,8 +260,12 @@ func scenario_tutorial() -> void:
 	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/radio_hello.png")
 	await _radio_through(radio)
 	check("after the call the player is free", not radio.is_open() and not player.frozen and DayCycle.running)
+	check("tutorial hint is shown", tutorial._panel.visible and tutorial._panel.modulate.a > 0.9)
+	tutorial._fade_panel(tutorial.SHOW_TIME + tutorial.FADE_TIME + 0.1)
+	check("tutorial hint fades away by itself", not tutorial._panel.visible)
 	await hold(Actions.RIGHT, 0.5)
 	check("step 1 done after walking", step.call() == 1, step.call())
+	check("next step shows the hint again", tutorial._panel.visible and tutorial._panel.modulate.a > 0.9)
 	await teleport(Vector2i(32, 11))
 	await hold(Actions.DOWN, 1.4)
 	check("step 2 done at shaft bottom", step.call() == 2, step.call())
