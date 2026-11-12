@@ -248,3 +248,10 @@ func scenario_surface() -> void:
 	player.global_position = TileCatalog.cell_center(Vector2i(24, 11)) - Vector2(0, 2)
 	await get_tree().physics_frame
 	player.camera.snap()
+
+
+func scenario_guide() -> void:
+	await get_tree().create_timer(0.5).timeout
+	var book: GuideBook = main.get_node("UI/GuideBook")
+	book.toggle()
+	book.open_chapter(int(OS.get_cmdline_user_args()[3]) if OS.get_cmdline_user_args().size() > 3 else 2)

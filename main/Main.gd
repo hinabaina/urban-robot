@@ -65,6 +65,11 @@ func _ready() -> void:
 	$UI.add_child(moment)
 	$UI.move_child(moment, $UI/PauseMenu.get_index())   # над HUD и подсказками, под паузой и меню
 	moment.setup(player, world)
+	var guide := GuideBook.new()
+	guide.name = "GuideBook"
+	$UI.add_child(guide)
+	$UI.move_child(guide, $UI/PauseMenu.get_index())
+	$UI/HUD.guide_pressed.connect(guide.toggle)
 	var radio := Radio.new()
 	radio.name = "Radio"
 	$UI.add_child(radio)
@@ -141,6 +146,8 @@ func _play_intro(after: Callable) -> void:
 
 
 func _start_playing() -> void:
+	if GameState.day == 1 and DayCycle.hour <= 6.5:
+		GameState.notify.call_deferred("NOTICE_GUIDE")    # где искать подсказки, если что-то непонятно
 	menu.visible = false
 	player.frozen = false
 	DayCycle.running = true

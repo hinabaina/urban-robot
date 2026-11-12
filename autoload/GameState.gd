@@ -181,6 +181,9 @@ func from_dict(d: Dictionary) -> void:
 	for type in d["pockets"]:
 		pockets[type] = int(d["pockets"][type])
 	unlocked.assign(d["unlocked"])
+	for id in GameConfig.days()["start"]["unlocked"]:   # старое сохранение: новые стартовые инструменты тоже в руках
+		if not unlocked.has(id):
+			unlocked.append(id)
 	water = int(d.get("water", 0))
 	rocket = d.get("rocket", []).duplicate(true)
 	delivered_total = int(d.get("delivered_total", 0))

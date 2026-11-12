@@ -1,4 +1,4 @@
-# E — положить в машину / взять из машины; F (держать) — снести машину с возвратом цены. Владелец: B.
+# E — положить в машину / взять из машины; F или ЛКМ с ключом (держать) — снести машину с возвратом цены. Владелец: B.
 extends Node
 
 signal demolish_progress(cell: Vector2i, type: String, ratio: float)
@@ -87,7 +87,9 @@ func _collect(items: Array, cell: Vector2i) -> void:
 
 
 func _demolish(delta: float) -> void:
-	var machine := _target(false) if Input.is_action_pressed(Actions.DEMOLISH) else {}
+	# Разобрать: держать F или ЛКМ с ключом в руке.
+	var wrench: bool = player.get_node("Build").selected_id() == "wrench" and Input.is_action_pressed(Actions.USE)
+	var machine := _target(false) if Input.is_action_pressed(Actions.DEMOLISH) or wrench else {}
 	# Склад и костёр стоят на карте с начала игры: чертежа у них нет, сносить нельзя.
 	if machine.is_empty() or GameConfig.unlock_day(machine["type"]) < 0:
 		_stop_demolish()

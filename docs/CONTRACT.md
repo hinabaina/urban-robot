@@ -39,6 +39,7 @@ Sim.tick_alpha() -> float                       # доля текущего ти
 
 Sim.can_place(type, cell, dir) -> Dictionary    # {"ok": bool, "reason": String}
 Sim.place_machine(type, cell, dir) -> bool      # цену не списывает
+Sim.place_block(cell) -> bool                   # блок земли в пустую клетку (не над грядкой); убирается киркой
 Sim.remove_machine(cell) -> Array               # предметы, лежавшие внутри; цену возвращает B
 
 Sim.dig_time(cell) -> float                     # секунды; 0 = копать нельзя

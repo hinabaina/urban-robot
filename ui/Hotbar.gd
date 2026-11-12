@@ -6,6 +6,7 @@ const COST_ICON := 16
 const LOCKED_TINT := Color(0.35, 0.37, 0.45)
 const EDGE := 8
 const HOVER_SCALE := 1.08
+const KEY_NAMES := ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-"]   # как в Actions
 const SELECT_SCALE := 1.18
 
 var _build: Node              # BuildController
@@ -57,7 +58,7 @@ func _make_slot(index: int) -> Control:
 	column.add_child(panel)
 	var icon := UiKit.icon(Sprites.slot(id))
 	panel.add_child(icon)
-	var key := UiKit.label(str(index + 1), UiKit.TINY_SIZE, UiKit.MUTED)
+	var key := UiKit.label(KEY_NAMES[index] if index < KEY_NAMES.size() else "", UiKit.TINY_SIZE, UiKit.MUTED)
 	key.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	panel.add_child(key)
 	var lock := UiKit.icon(Sprites.icon("lock"))

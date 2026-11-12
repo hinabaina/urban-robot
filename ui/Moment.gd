@@ -21,6 +21,7 @@ var _subtitle: Label
 var _playing := false
 var _queue: Array = []            # [id, позиция в мире]
 var _skip := false
+var _hold: HoldSkip
 
 
 func setup(player: CharacterBody2D, world: Node2D) -> void:
@@ -53,6 +54,13 @@ func setup(player: CharacterBody2D, world: Node2D) -> void:
 
 
 ## Показать момент id, если его ещё не было в этой партии.
+	_hold = HoldSkip.new()
+	_hold.at_top = true
+	_hold.visible = false
+	_hold.skipped.connect(func() -> void: _skip = true)
+	add_child(_hold)
+
+
 func play(id: String, at: Vector2) -> void:
 	if not enabled or GameState.moments_seen.has(id) or DayCycle.phase != DayCycle.Phase.DAY:
 		return
@@ -73,6 +81,8 @@ func _next() -> void:
 	var id: String = item[0]
 	_playing = true
 	_skip = false
+	_hold.reset()
+	_hold.visible = true
 	var was_running := DayCycle.running
 	DayCycle.running = false
 	_player.frozen = true
@@ -104,6 +114,7 @@ func _next() -> void:
 		back.tween_property(node, "modulate:a", 1.0, OUT_TIME)
 	back.tween_property(_title, "modulate:a", 0.0, OUT_TIME * 0.6)
 	back.tween_property(_subtitle, "modulate:a", 0.0, OUT_TIME * 0.6)
+	_hold.visible = false
 	await back.finished
 	_title.modulate.a = 1.0
 	_player.frozen = DayCycle.phase in [DayCycle.Phase.NIGHT, DayCycle.Phase.REPORT, DayCycle.Phase.OVER]
@@ -129,8 +140,7 @@ func _set_bars(t: float) -> void:
 	_bottom.offset_top = -BAR * t
 
 
-## Любая клавиша или клик пропускает момент.
+## Клавиши во время момента до игры не доходят; пропуск — удержанием Пробела (полоска справа внизу).
 func _input(event: InputEvent) -> void:
-	if _playing and event.is_pressed() and not event.is_echo() and (event is InputEventKey or event is InputEventMouseButton):
-		_skip = true
+	if _playing and (event is InputEventKey or event is InputEventMouseButton) and not _hold.get_global_rect().has_point(get_global_mouse_position()):
 		get_viewport().set_input_as_handled()
