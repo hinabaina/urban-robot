@@ -20,11 +20,17 @@ var rocket: Array = []            # по дням: {part: String, patched: bool}
 var delivered_total := 0
 var delivered_auto := 0
 var finished := false
+var made_total := 0                # все слитки, пришедшие на склад (для живой полосы автоматизации)
+var made_auto := 0                 # из них без рук
+var moments_seen: Array = []       # кинематографичные моменты (ui/Moment.gd), уже показанные в этой партии
 var early_gift_given := false     # посылка первого дня (чертежи машин) уже сброшена
 
 
 func _ready() -> void:
-	Sim.item_delivered.connect(func(_type: String, _by_hand: bool) -> void:
+	Sim.item_delivered.connect(func(type: String, by_hand: bool) -> void:
+		if type == "ingot":
+			made_total += 1
+			made_auto += 0 if by_hand else 1
 		emit_quota()
 		_check_early_gift())
 	new_game()
@@ -89,6 +95,11 @@ func is_unlocked(id: String) -> bool:
 
 
 ## Доля слитков, сданных без участия рук (0..1) за всю игру.
+## Доля слитков без рук среди всех, что пришли на склад. Меняется сразу, полоса в HUD показывает её.
+func live_automation() -> float:
+	return float(made_auto) / float(made_total) if made_total > 0 else 0.0
+
+
 func automation() -> float:
 	return float(delivered_auto) / float(delivered_total) if delivered_total > 0 else 0.0
 
@@ -154,7 +165,8 @@ func _apply_gift(gift: Dictionary) -> void:
 
 func to_dict() -> Dictionary:
 	return {"day": day, "trust": trust, "pockets": pockets.duplicate(), "water": water, "unlocked": unlocked.duplicate(),
-		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto, "early_gift_given": early_gift_given}
+		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto, "early_gift_given": early_gift_given,
+		"moments_seen": moments_seen.duplicate(), "made_total": made_total, "made_auto": made_auto}
 
 
 ## Восстановить состояние (загрузка сохранения или новая игра). Отсутствующие поля — как в начале партии.
@@ -170,6 +182,9 @@ func from_dict(d: Dictionary) -> void:
 	delivered_total = int(d.get("delivered_total", 0))
 	delivered_auto = int(d.get("delivered_auto", 0))
 	early_gift_given = bool(d.get("early_gift_given", false))
+	moments_seen.assign(d.get("moments_seen", []))
+	made_total = int(d.get("made_total", 0))
+	made_auto = int(d.get("made_auto", 0))
 	finished = false
 	_emit_all()
 

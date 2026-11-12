@@ -96,8 +96,8 @@ func _by_hand(t: TestCase) -> void:
 	t.check(Sim.insert(FURNACE, Item.GRAIN), "игрок кладёт в печь 1 зерно руками")
 	TestWorld.run(30.0)
 	var touched := Sim.storage_take_for_drone(99)
-	t.equal(touched.map(func(item: Item) -> bool: return item.by_hand), [true],
-		"слиток, в котором есть зерно из рук, помечен by_hand")
+	t.equal(touched.map(func(item: Item) -> bool: return item.by_hand), [false],
+		"зерно-топливо из рук не делает слиток ручным (руда пришла с бура)")
 
 
 func _night(t: TestCase) -> void:

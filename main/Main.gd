@@ -59,6 +59,11 @@ func _ready() -> void:
 	$Juice.setup(player, world, machine_view, tool_user)
 	$Decor.setup(world)
 	$Lights.setup(player, world)
+	var moment := Moment.new()
+	moment.name = "Moment"
+	$UI.add_child(moment)
+	$UI.move_child(moment, $UI/PauseMenu.get_index())   # над HUD и подсказками, под паузой и меню
+	moment.setup(player, world)
 	_wake_up()
 	GameState.emit_quota()
 	DayCycle.reset()
