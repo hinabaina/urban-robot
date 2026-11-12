@@ -79,7 +79,8 @@ func _process(delta: float) -> void:
 	_feet(delta)
 	if _shake > 0.0:
 		_shake = maxf(0.0, _shake - SHAKE_FADE * delta)
-		_player.camera.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake if _shake > 0.0 else Vector2.ZERO
+		# Тряска в своём поле камеры: offset принадлежит кино-моментам, их не перетираем.
+		_player.camera.shake_offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake if _shake > 0.0 else Vector2.ZERO
 
 
 ## Короткая тряска камеры; strength — размах в пикселях мира.

@@ -3,11 +3,12 @@ extends Control
 
 signal pause_pressed()
 
-const BAR_SIZE := Vector2(210, 24)
-const AUTO_BAR_SIZE := Vector2(110, 16)
-const HEART := 28
+const BAR_SIZE := Vector2(190, 28)
+const AUTO_BAR_SIZE := Vector2(132, 28)
+const HEART := 24
 const POCKET_ICON := 24
-const EDGE := 8
+const EDGE := 6
+const GAP := 10
 
 var _orb: TextureRect
 var _day: Label
@@ -25,16 +26,10 @@ var _shown_quota := -1
 
 func _ready() -> void:
 	UiKit.setup_root(self)
-	var panel := PanelContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE, Control.PRESET_MODE_MINSIZE, EDGE)
-	add_child(panel)
-	var row := UiKit.hbox(14)
-	panel.add_child(row)
-	_build_left(row)
-	_spacer(row)
-	_build_center(row)
-	_spacer(row)
-	_build_right(row)
+	# Три компактные плашки вместо полосы на всю ширину: между ними видно небо и мир.
+	_build_left(_pill(Control.PRESET_TOP_LEFT))
+	_build_center(_pill(Control.PRESET_CENTER_TOP))
+	_build_right(_pill(Control.PRESET_TOP_RIGHT))
 	GameState.quota_changed.connect(_on_quota)
 	GameState.trust_changed.connect(_on_trust)
 	GameState.pockets_changed.connect(_on_pockets)
@@ -48,27 +43,24 @@ func _ready() -> void:
 	_on_speed()
 
 
+func _pill(preset: int) -> HBoxContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", UiKit.box("ui_panel", 6))
+	panel.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE, EDGE)
+	panel.grow_horizontal = {Control.PRESET_TOP_LEFT: Control.GROW_DIRECTION_END,
+		Control.PRESET_TOP_RIGHT: Control.GROW_DIRECTION_BEGIN}.get(preset, Control.GROW_DIRECTION_BOTH)
+	add_child(panel)
+	var row := UiKit.hbox(GAP)
+	panel.add_child(row)
+	return row
+
+
 func _build_left(row: HBoxContainer) -> void:
 	_orb = UiKit.icon(Sprites.icon("sun"))
 	_day = UiKit.label("")
 	_clock = UiKit.title("06:00", UiKit.TITLE_SIZE, UiKit.ACCENT)
 	for node in [_orb, _day, _clock]:
 		row.add_child(node)
-
-
-func _build_center(row: HBoxContainer) -> void:
-	row.add_child(UiKit.icon(Sprites.item("ingot"), POCKET_ICON))
-	row.add_child(UiKit.label(tr("HUD_STORAGE")))
-	_quota_bar = ProgressBar.new()
-	_quota_bar.custom_minimum_size = BAR_SIZE
-	_quota_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_quota_bar.show_percentage = false
-	row.add_child(_quota_bar)
-	_quota_text = UiKit.label("", UiKit.SMALL_SIZE)
-	_quota_text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_quota_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_quota_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_quota_bar.add_child(_quota_text)
 	var hearts := UiKit.hbox(2)
 	row.add_child(hearts)
 	for i in int(GameConfig.days()["start"]["trust"]):
@@ -77,24 +69,42 @@ func _build_center(row: HBoxContainer) -> void:
 		_hearts.append(heart)
 
 
+func _build_center(row: HBoxContainer) -> void:
+	row.add_child(UiKit.icon(Sprites.item("ingot"), POCKET_ICON))
+	_quota_bar = ProgressBar.new()
+	_quota_bar.custom_minimum_size = BAR_SIZE
+	_quota_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_quota_bar.show_percentage = false
+	row.add_child(_quota_bar)
+	_quota_bar.tooltip_text = tr("HUD_STORAGE")
+	_quota_text = UiKit.label("", UiKit.SMALL_SIZE)
+	_quota_text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_quota_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quota_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_quota_bar.add_child(_quota_text)
+
+
 func _build_right(row: HBoxContainer) -> void:
 	for type in Sprites.ITEMS:
 		row.add_child(UiKit.icon(Sprites.item(type), POCKET_ICON))
 		_pockets[type] = UiKit.label("0")
-		_pockets[type].custom_minimum_size.x = 30
+		_pockets[type].custom_minimum_size.x = 28
 		row.add_child(_pockets[type])
-	var auto := UiKit.vbox(0)
-	auto.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_child(auto)
-	_auto_label = UiKit.label("", UiKit.SMALL_SIZE, UiKit.MUTED)
-	auto.add_child(_auto_label)
+	# Автоматизация: короткая подпись внутри полосы, полное название — во всплывающей подсказке.
 	_auto_bar = ProgressBar.new()
 	_auto_bar.custom_minimum_size = AUTO_BAR_SIZE
+	_auto_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_auto_bar.show_percentage = false
 	_auto_bar.max_value = 1.0
-	auto.add_child(_auto_bar)
+	_auto_bar.tooltip_text = tr("HUD_AUTO_TIP")
+	row.add_child(_auto_bar)
+	_auto_label = UiKit.label("", UiKit.SMALL_SIZE)
+	_auto_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_auto_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_auto_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_auto_bar.add_child(_auto_label)
 	for value in GameConfig.days()["clock"]["speeds"]:
-		var button := UiKit.button("×%d" % int(value), DayCycle.set_user_speed.bind(value))
+		var button := UiKit.button("x%d" % int(value), DayCycle.set_user_speed.bind(value))
 		button.toggle_mode = true
 		_speed_buttons[value] = button
 		row.add_child(button)
@@ -158,7 +168,7 @@ func _on_automation() -> void:
 	var value := GameState.live_automation()
 	if not is_equal_approx(value, _auto_bar.value) and value > _auto_bar.value:
 		_pop(_auto_bar, 1.15, UiKit.GOOD)
-	_auto_label.text = tr("HUD_AUTOMATION") % int(round(value * 100.0))
+	_auto_label.text = tr("HUD_AUTO_SHORT") % int(round(value * 100.0))
 	create_tween().tween_property(_auto_bar, "value", value, 0.4).set_trans(Tween.TRANS_SINE)
 
 

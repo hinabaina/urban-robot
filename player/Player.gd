@@ -25,17 +25,12 @@ var _jump_speed := 0.0
 func _ready() -> void:
 	_cfg = GameConfig.player()
 	_jump_speed = sqrt(2.0 * float(_cfg["gravity"]) * float(_cfg["jump_height_px"]))
-	camera.zoom = Vector2.ONE * float(_cfg["camera_zoom"])
 	Sim.machine_placed.connect(_on_machine_placed)
 	Sim.machine_removed.connect(func(cell: Vector2i) -> void: _ladders.erase(cell))
 
 
 func limit_camera(world: Rect2) -> void:
-	camera.limit_left = int(world.position.x)
-	camera.limit_top = int(world.position.y)
-	camera.limit_right = int(world.end.x)
-	camera.limit_bottom = int(world.end.y)
-	camera.reset_smoothing()
+	camera.set_bounds(world)
 
 
 func in_reach(point: Vector2, tiles: float = -1.0) -> bool:

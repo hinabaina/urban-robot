@@ -27,7 +27,7 @@ func open(page: String) -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list.add_child(title)
 	for key in PAGES[page]["lines"]:
-		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE + 2)
+		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE)
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		list.add_child(line)
 	var back := UiKit.button(tr("BTN_BACK"), close)

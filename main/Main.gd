@@ -185,4 +185,4 @@ func _play_launch() -> void:
 func _wake_up() -> void:
 	player.global_position = world.marker_pos("Spawn") + Vector2(0, TileCatalog.TILE * 0.5 - player.HALF_HEIGHT)
 	player.velocity = Vector2.ZERO
-	player.camera.reset_smoothing()
+	player.camera.snap()

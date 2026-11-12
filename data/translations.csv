@@ -4,6 +4,8 @@ HUD_STORAGE,Склад,Қойма,Storage
 HUD_QUOTA,%d / %d,%d / %d,%d / %d
 HUD_AUTOMATION,Автоматизация %d%%,Автоматтандыру %d%%,Automation %d%%
 HUD_PAUSE_TIP,Пауза (Esc),Кідіріс (Esc),Pause (Esc)
+HUD_AUTO_SHORT,Авто %d%%,Авто %d%%,Auto %d%%
+HUD_AUTO_TIP,"Автоматизация: доля слитков, сделанных без рук",Автоматтандыру: қолсыз жасалған құймалар үлесі,Automation: share of ingots made hands-free
 HINT_EVENING,Вечер. Можно достроить фабрику или лечь спать — клавиша Z,Кеш. Зауытты аяқтап құруға немесе ұйықтауға болады — Z пернесі,Evening. Finish the factory or go to sleep — press Z
 HINT_NIGHT,Ночь. Ты спишь — фабрика работает,Түн. Сен ұйықтап жатырсың — зауыт жұмыс істеп тұр,Night. You sleep — the factory works
 HINT_DRONE,Дрон забирает слитки со склада,Дрон қоймадан құймаларды алып жатыр,The drone is taking ingots from storage
@@ -28,8 +30,8 @@ SLOT_sprinkler,Поливалка,Суарғыш,Sprinkler
 SLOT_harvester,Сборщик,Жинағыш,Harvester
 DESC_pickaxe,Держи ЛКМ: копать землю и руду,Сол батырманы басып тұр: жер мен кенді қазу,Hold LMB: dig dirt and ore
 DESC_can,ЛКМ: набрать воду в колодце и полить грядку,Сол батырма: құдықтан су алу және жүйекті суару,LMB: fill up at the well and water a bed
-DESC_seed,"Клик по грядке у колодца: посадить. Семена не кончаются","Құдық жанындағы жүйекке шерт: егу. Дән таусылмайды","Click a bed by the well to plant. Seeds never run out"
-DESC_ladder,"Клик: поставить. Лазать — W и S","Шерту: қою. Өрмелеу — W және S","Click to place. Climb with W and S"
+DESC_seed,Клик по грядке у колодца: посадить. Семена не кончаются,Құдық жанындағы жүйекке шерт: егу. Дән таусылмайды,Click a bed by the well to plant. Seeds never run out
+DESC_ladder,Клик: поставить. Лазать — W и S,Шерту: қою. Өрмелеу — W және S,Click to place. Climb with W and S
 DESC_conveyor,Везёт предметы. Q — повернуть. Вверх — это лифт,Заттарды тасиды. Q — бұру. Жоғары бағыт — лифт,"Moves items. Q — rotate. Pointing up, it's a lift"
 DESC_drill,"Добывает руду из жилы, которой касается",Өзі тиіп тұрған желіден кен өндіреді,Mines ore from the vein it touches
 DESC_furnace,2 руды + 1 зерно → 1 слиток,2 кен + 1 дән → 1 құйма,2 ore + 1 grain → 1 ingot
@@ -128,53 +130,53 @@ TUT_D1_BELT,"Конвейер (5): зажми кнопку мыши и прот�
 TUT_D1_FUEL,Положи зерно в печь (E). Дальше линия работает без тебя!,Пешке дән сал (E). Әрі қарай желі сенсіз жұмыс істейді!,Put grain into the furnace (E). From here the line works without you!
 TUT_DEEP,"Руда у склада скоро кончится. Копай глубже: в камне жилы богаче, а на самом дне — бесконечные","Қойма жанындағы кен жуырда таусылады. Тереңірек қаз: таста желілер бай, ал ең түбінде — таусылмайды","The ore by the storage will run out soon. Dig deeper: veins in stone are richer, and at the very bottom they never end"
 NOTICE_EARLY_GIFT,"Дрон сбросил посылку: чертежи бура, печи и конвейера!","Дрон сәлемдеме тастады: бұрғы, пеш және конвейер сызбалары!","The drone dropped a parcel: drill, furnace and conveyor blueprints!"
-NOTICE_QUOTA_DONE,"Норма дня выполнена!","Күндік норма орындалды!","Daily quota met!"
+NOTICE_QUOTA_DONE,Норма дня выполнена!,Күндік норма орындалды!,Daily quota met!
 SLOT_LOCKED_SOON,Сдай первый слиток на склад — дрон сбросит этот чертёж,Қоймаға алғашқы құйманы тапсыр — дрон бұл сызбаны тастайды,Deliver your first ingot to storage — the drone will drop this blueprint
-NOTICE_PLANT_WHERE,"Сажать можно на пашню у колодца (коричневые грядки) или на землю рядом с ней","Тек құдық жанындағы жыртылған жерге немесе оның қасына егуге болады","Plant on the tilled beds by the well or on soil next to them"
+NOTICE_PLANT_WHERE,Сажать можно на пашню у колодца (коричневые грядки) или на землю рядом с ней,Тек құдық жанындағы жыртылған жерге немесе оның қасына егуге болады,Plant on the tilled beds by the well or on soil next to them
 GOAL_GRAIN,"Печи нечем топить: посади семена (3) на грядки у колодца, полей (2), собери урожай и положи зерно в печь (E)","Пешке отын жоқ: құдық жанындағы жүйекке дән ек (3), суар (2), өнімді жинап, пешке сал (E)","The furnace has no fuel: plant seeds (3) on the beds by the well, water them (2), harvest and put grain in the furnace (E)"
-GOAL_FEED,"Печи нужно зерно: подойди к печи и нажми E","Пешке дән керек: пешке барып E бас","The furnace needs grain: walk up to it and press E"
-GOAL_BLOCKED,"Линия встала (красный знак): выходу машины некуда деть товар — проверь ленту до склада","Желі тоқтады (қызыл белгі): машинаның шығатын жері жоқ — қоймаға дейінгі таспаны тексер","The line is stuck (red sign): a machine has nowhere to put its output — check the belt to storage"
+GOAL_FEED,Печи нужно зерно: подойди к печи и нажми E,Пешке дән керек: пешке барып E бас,The furnace needs grain: walk up to it and press E
+GOAL_BLOCKED,Линия встала (красный знак): выходу машины некуда деть товар — проверь ленту до склада,Желі тоқтады (қызыл белгі): машинаның шығатын жері жоқ — қоймаға дейінгі таспаны тексер,The line is stuck (red sign): a machine has nowhere to put its output — check the belt to storage
 GOAL_EXHAUSTED,"Жила кончилась: перенеси бур (F — снести) на новую руду, глубже руды больше","Кен таусылды: бұрғыны жаңа кенге көшір (F — бұзу), тереңде кен көп","The vein is empty: move the drill (F to remove) to new ore, deeper veins are bigger"
-GOAL_BUILD_LINE,"Построй линию: бур (6) на руду → конвейер (5) → печь (7) → конвейер → склад","Желі құр: бұрғы (6) кенге → конвейер (5) → пеш (7) → конвейер → қойма","Build a line: drill (6) on ore → conveyor (5) → furnace (7) → conveyor → storage"
-GOAL_SPRINKLER,"Автоматизируй ферму: поставь поливалку (8) у грядок — она поливает сама","Фермасын автоматтандыр: жүйек жанына суарғыш (8) қой — өзі суарады","Automate the farm: put a sprinkler (8) by the beds — it waters them by itself"
-GOAL_HARVESTER,"Поставь сборщик (9) у грядок и протяни от него ленту к печи — зерно поедет само","Жүйек жанына жинағыш (9) қойып, одан пешке таспа тарт — дән өзі барады","Put a harvester (9) by the beds and run a belt from it to the furnace — grain will flow by itself"
-GOAL_QUOTA,"Цель дня: %d из %d слитков на складе до 18:00","Күн мақсаты: 18:00-ге дейін қоймада %d / %d құйма","Today's goal: %d of %d ingots in storage by 18:00"
-GOAL_GROW,"Норма есть! Расширяй фабрику: завтра норма больше (день %d из 5)","Норма бар! Зауытты кеңейт: ертең норма көбірек (%d-күн / 5)","Quota met! Grow the factory: tomorrow's quota is bigger (day %d of 5)"
-MOMENT_PARCEL_T,"ПОСЫЛКА С НЕБА","АСПАННАН СӘЛЕМДЕМЕ","A PARCEL FROM THE SKY"
-MOMENT_PARCEL_S,"Город прислал чертежи. Хватит работать руками — пусть работают машины.","Қала сызбалар жіберді. Қолмен жұмыс жетер — машиналар істесін.","The city sent blueprints. Stop working by hand — let the machines do it."
-MOMENT_AUTO_T,"ПЕРВЫЙ СЛИТОК БЕЗ РУК","ҚОЛСЫЗ ЖАСАЛҒАН АЛҒАШҚЫ ҚҰЙМА","THE FIRST INGOT WITHOUT HANDS"
+GOAL_BUILD_LINE,Построй линию: бур (6) на руду → конвейер (5) → печь (7) → конвейер → склад,Желі құр: бұрғы (6) кенге → конвейер (5) → пеш (7) → конвейер → қойма,Build a line: drill (6) on ore → conveyor (5) → furnace (7) → conveyor → storage
+GOAL_SPRINKLER,Автоматизируй ферму: поставь поливалку (8) у грядок — она поливает сама,Фермасын автоматтандыр: жүйек жанына суарғыш (8) қой — өзі суарады,Automate the farm: put a sprinkler (8) by the beds — it waters them by itself
+GOAL_HARVESTER,Поставь сборщик (9) у грядок и протяни от него ленту к печи — зерно поедет само,"Жүйек жанына жинағыш (9) қойып, одан пешке таспа тарт — дән өзі барады",Put a harvester (9) by the beds and run a belt from it to the furnace — grain will flow by itself
+GOAL_QUOTA,Цель дня: %d из %d слитков на складе до 18:00,Күн мақсаты: 18:00-ге дейін қоймада %d / %d құйма,Today's goal: %d of %d ingots in storage by 18:00
+GOAL_GROW,Норма есть! Расширяй фабрику: завтра норма больше (день %d из 5),Норма бар! Зауытты кеңейт: ертең норма көбірек (%d-күн / 5),Quota met! Grow the factory: tomorrow's quota is bigger (day %d of 5)
+MOMENT_PARCEL_T,ПОСЫЛКА С НЕБА,АСПАННАН СӘЛЕМДЕМЕ,A PARCEL FROM THE SKY
+MOMENT_PARCEL_S,Город прислал чертежи. Хватит работать руками — пусть работают машины.,Қала сызбалар жіберді. Қолмен жұмыс жетер — машиналар істесін.,The city sent blueprints. Stop working by hand — let the machines do it.
+MOMENT_AUTO_T,ПЕРВЫЙ СЛИТОК БЕЗ РУК,ҚОЛСЫЗ ЖАСАЛҒАН АЛҒАШҚЫ ҚҰЙМА,THE FIRST INGOT WITHOUT HANDS
 MOMENT_AUTO_S,"Ты его не трогал. Бур, лента и печь сделали всё сами.","Сен оны ұстаған жоқсың. Бұрғы, таспа мен пеш бәрін өздері жасады.","You never touched it. The drill, the belt and the furnace did it all."
-MOMENT_EXHAUSTED_T,"ЖИЛА ИССЯКЛА","КЕН ТАУСЫЛДЫ","THE VEIN RAN DRY"
+MOMENT_EXHAUSTED_T,ЖИЛА ИССЯКЛА,КЕН ТАУСЫЛДЫ,THE VEIN RAN DRY
 MOMENT_EXHAUSTED_S,"Наверху руды мало. Глубже, в камне, жилы больше — перенеси бур.","Жоғарыда кен аз. Тереңде, тас ішінде, кен көп — бұрғыны көшір.","There is little ore up top. Deeper, in the stone, veins are bigger — move the drill."
-TUT_D1_BELT2,"Теперь вторая лента: от выхода печи (жёлтая стрелка) вправо до самого склада. Без неё слитки застрянут в печи","Енді екінші таспа: пештің шығысынан (сары жебе) оңға қарай қоймаға дейін. Онсыз құймалар пеште қалады","Now a second belt: from the furnace output (yellow arrow) right up to the storage. Without it ingots get stuck in the furnace"
-RADIO_NAME_AISHA,"Айша · аул Қарасу","Айша · Қарасу ауылы","Aisha · Karasu village"
-RADIO_NAME_ERZHAN,"Ержан-ата","Ержан ата","Old Yerzhan"
-RADIO_NEXT,"Дальше ▶","Әрі қарай ▶","Next ▶"
-RADIO_CANT,"не хватает","жетпейді","not enough"
+TUT_D1_BELT2,Теперь вторая лента: от выхода печи (жёлтая стрелка) вправо до самого склада. Без неё слитки застрянут в печи,Енді екінші таспа: пештің шығысынан (сары жебе) оңға қарай қоймаға дейін. Онсыз құймалар пеште қалады,Now a second belt: from the furnace output (yellow arrow) right up to the storage. Without it ingots get stuck in the furnace
+RADIO_NAME_AISHA,Айша · аул Қарасу,Айша · Қарасу ауылы,Aisha · Karasu village
+RADIO_NAME_ERZHAN,Ержан-ата,Ержан ата,Old Yerzhan
+RADIO_NEXT,Дальше ▶,Әрі қарай ▶,Next ▶
+RADIO_CANT,не хватает,жетпейді,not enough
 RADIO_HELLO_1,"Станция, приём! Кто-нибудь слышит? Это Айша из аула Қарасу.","Станция, қабылдаңыз! Біреу ести ме? Бұл Қарасу ауылынан Айша.","Station, come in! Can anyone hear me? This is Aisha from Karasu village."
-RADIO_HELLO_2,"Колодцы уходят. Воды осталось на пять дней. Старики говорят: у вас стоит ракета со спутником, который находит дождь.","Құдықтар тартылып барады. Су бес күнге ғана жетеді. Қарттар айтады: сендерде жаңбырды табатын спутнигі бар зымыран тұр.","The wells are drying up. We have water for five days. The elders say you have a rocket with a satellite that finds rain."
-RADIO_HELLO_3,"Если ты и правда инженер — подними её. Городу нужны слитки на детали, каждый день больше. Я буду на связи. Начни с руды в старой шахте.","Шынымен инженер болсаң — оны көтер. Қалаға бөлшектер үшін күн сайын көбірек құйма керек. Мен байланыста боламын. Ескі шахтадағы кеннен баста.","If you really are an engineer — get it flying. The city needs ingots for parts, more every day. I'll stay on the line. Start with ore in the old mine."
-RADIO_AUTO,"Я вижу дым в бинокль! Оно работает… само? Дед говорил, машины здесь умерли двадцать лет назад. Продолжай!","Дүрбіден түтін көріп тұрмын! Ол… өзі жұмыс істеп тұр ма? Атам мұндағы машиналар жиырма жыл бұрын өлген деген. Жалғастыр!","I can see smoke through the binoculars! It works… by itself? Grandpa said the machines here died twenty years ago. Keep going!"
-RADIO_DAY2,"Утро. Воды на четыре дня. Сегодня городу нужно 15 слитков — печи понадобится много зерна. Засей пашню у колодца.","Таң. Су төрт күнге жетеді. Бүгін қалаға 15 құйма керек — пешке көп дән қажет. Құдық жанындағы егістікке дән ек.","Morning. Water for four days. The city needs 15 ingots today — the furnace will need a lot of grain. Sow the field by the well."
-RADIO_PUMP,"Беда. Насос у последнего колодца встал: лопнула муфта. Чтобы отлить новую, нужно 3 слитка. Знаю, это твоя норма…","Пәле. Соңғы құдықтағы сорғы тоқтады: муфтасы жарылды. Жаңасын құю үшін 3 құйма керек. Бұл сенің нормаң екенін білемін…","Trouble. The pump at the last well has stopped: the coupling cracked. Casting a new one takes 3 ingots. I know that's your quota…"
-RADIO_PUMP_YES,"Отдать 3 слитка со склада","Қоймадан 3 құйма беру","Give 3 ingots from storage"
-RADIO_PUMP_NO,"Не могу: ракета важнее","Бере алмаймын: зымыран маңыздырақ","I can't: the rocket matters more"
-RADIO_PUMP_YES_R,"Спасибо. Я этого не забуду. Аул не забудет.","Рақмет. Мен мұны ұмытпаймын. Ауыл ұмытпайды.","Thank you. I won't forget this. The village won't forget."
-RADIO_PUMP_NO_R,"…Поняла. Наверное, ты прав. Будем носить вёдрами.","…Түсіндім. Сенікі дұрыс шығар. Шелекпен тасимыз.","…I see. You're probably right. We'll carry it in buckets."
-RADIO_DAY3_GOOD,"Насос качает! Дети собрали тебе мешок зерна и оставили у станции. Воды на три дня.","Сорғы жұмыс істеп тұр! Балалар саған бір қап дән жинап, станцияға қалдырды. Су үш күнге жетеді.","The pump is running! The kids gathered a sack of grain for you and left it at the station. Water for three days."
-RADIO_DAY3_BAD,"Насос так и стоит. Три семьи ночью уехали в город. Воды на три дня.","Сорғы әлі тұр. Түнде үш отбасы қалаға көшіп кетті. Су үш күнге жетеді.","The pump is still dead. Three families left for the city last night. Water for three days."
-RADIO_STORM,"Смотри на запад: идёт пыльная буря! Песок рвёт ленты. Останови фабрику и укрой машины — потеряешь два часа. Или рискни.","Батысқа қара: шаңды дауыл келе жатыр! Құм таспаларды жыртады. Зауытты тоқтатып, машиналарды жап — екі сағат жоғалтасың. Немесе тәуекел ет.","Look west: a dust storm is coming! Sand tears belts apart. Stop the factory and cover the machines — you'll lose two hours. Or take the risk."
-RADIO_STORM_HIDE,"Укрыть машины (−2 часа)","Машиналарды жабу (−2 сағат)","Cover the machines (−2 hours)"
-RADIO_STORM_RISK,"Работать в бурю","Дауылда жұмыс істеу","Keep working in the storm"
+RADIO_HELLO_2,"Колодцы уходят. Воды осталось на пять дней. Старики говорят: у вас стоит ракета со спутником, который находит дождь.",Құдықтар тартылып барады. Су бес күнге ғана жетеді. Қарттар айтады: сендерде жаңбырды табатын спутнигі бар зымыран тұр.,The wells are drying up. We have water for five days. The elders say you have a rocket with a satellite that finds rain.
+RADIO_HELLO_3,"Если ты и правда инженер — подними её. Городу нужны слитки на детали, каждый день больше. Я буду на связи. Начни с руды в старой шахте.",Шынымен инженер болсаң — оны көтер. Қалаға бөлшектер үшін күн сайын көбірек құйма керек. Мен байланыста боламын. Ескі шахтадағы кеннен баста.,"If you really are an engineer — get it flying. The city needs ingots for parts, more every day. I'll stay on the line. Start with ore in the old mine."
+RADIO_AUTO,"Я вижу дым в бинокль! Оно работает… само? Дед говорил, машины здесь умерли двадцать лет назад. Продолжай!",Дүрбіден түтін көріп тұрмын! Ол… өзі жұмыс істеп тұр ма? Атам мұндағы машиналар жиырма жыл бұрын өлген деген. Жалғастыр!,I can see smoke through the binoculars! It works… by itself? Grandpa said the machines here died twenty years ago. Keep going!
+RADIO_DAY2,Утро. Воды на четыре дня. Сегодня городу нужно 15 слитков — печи понадобится много зерна. Засей пашню у колодца.,Таң. Су төрт күнге жетеді. Бүгін қалаға 15 құйма керек — пешке көп дән қажет. Құдық жанындағы егістікке дән ек.,Morning. Water for four days. The city needs 15 ingots today — the furnace will need a lot of grain. Sow the field by the well.
+RADIO_PUMP,"Беда. Насос у последнего колодца встал: лопнула муфта. Чтобы отлить новую, нужно 3 слитка. Знаю, это твоя норма…",Пәле. Соңғы құдықтағы сорғы тоқтады: муфтасы жарылды. Жаңасын құю үшін 3 құйма керек. Бұл сенің нормаң екенін білемін…,Trouble. The pump at the last well has stopped: the coupling cracked. Casting a new one takes 3 ingots. I know that's your quota…
+RADIO_PUMP_YES,Отдать 3 слитка со склада,Қоймадан 3 құйма беру,Give 3 ingots from storage
+RADIO_PUMP_NO,Не могу: ракета важнее,Бере алмаймын: зымыран маңыздырақ,I can't: the rocket matters more
+RADIO_PUMP_YES_R,Спасибо. Я этого не забуду. Аул не забудет.,Рақмет. Мен мұны ұмытпаймын. Ауыл ұмытпайды.,Thank you. I won't forget this. The village won't forget.
+RADIO_PUMP_NO_R,"…Поняла. Наверное, ты прав. Будем носить вёдрами.",…Түсіндім. Сенікі дұрыс шығар. Шелекпен тасимыз.,…I see. You're probably right. We'll carry it in buckets.
+RADIO_DAY3_GOOD,Насос качает! Дети собрали тебе мешок зерна и оставили у станции. Воды на три дня.,"Сорғы жұмыс істеп тұр! Балалар саған бір қап дән жинап, станцияға қалдырды. Су үш күнге жетеді.",The pump is running! The kids gathered a sack of grain for you and left it at the station. Water for three days.
+RADIO_DAY3_BAD,Насос так и стоит. Три семьи ночью уехали в город. Воды на три дня.,Сорғы әлі тұр. Түнде үш отбасы қалаға көшіп кетті. Су үш күнге жетеді.,The pump is still dead. Three families left for the city last night. Water for three days.
+RADIO_STORM,Смотри на запад: идёт пыльная буря! Песок рвёт ленты. Останови фабрику и укрой машины — потеряешь два часа. Или рискни.,"Батысқа қара: шаңды дауыл келе жатыр! Құм таспаларды жыртады. Зауытты тоқтатып, машиналарды жап — екі сағат жоғалтасың. Немесе тәуекел ет.",Look west: a dust storm is coming! Sand tears belts apart. Stop the factory and cover the machines — you'll lose two hours. Or take the risk.
+RADIO_STORM_HIDE,Укрыть машины (−2 часа),Машиналарды жабу (−2 сағат),Cover the machines (−2 hours)
+RADIO_STORM_RISK,Работать в бурю,Дауылда жұмыс істеу,Keep working in the storm
 RADIO_STORM_HIDE_R,"Буря прошла стороной. Всё цело, запускай!","Дауыл өтіп кетті. Бәрі аман, іске қос!","The storm has passed. Everything is intact, start it up!"
-RADIO_STORM_RISK_R,"Песок порвал ленты! Найди дыры в линии и почини, пока фабрика стоит.","Құм таспаларды жыртты! Желідегі тесіктерді тауып, зауыт тұрғанда жөнде.","The sand tore the belts! Find the gaps in the line and fix them while the factory is down."
-RADIO_DAY4,"Воды на два дня. Норма 35 — одной линии уже мало. Говорят, глубоко под камнем руды больше.","Су екі күнге жетеді. Норма 35 — бір желі аздық етеді. Тас астында тереңде кен көп дейді.","Water for two days. The quota is 35 — one line is not enough anymore. They say there is more ore deep under the stone."
+RADIO_STORM_RISK_R,"Песок порвал ленты! Найди дыры в линии и почини, пока фабрика стоит.","Құм таспаларды жыртты! Желідегі тесіктерді тауып, зауыт тұрғанда жөнде.",The sand tore the belts! Find the gaps in the line and fix them while the factory is down.
+RADIO_DAY4,"Воды на два дня. Норма 35 — одной линии уже мало. Говорят, глубоко под камнем руды больше.",Су екі күнге жетеді. Норма 35 — бір желі аздық етеді. Тас астында тереңде кен көп дейді.,Water for two days. The quota is 35 — one line is not enough anymore. They say there is more ore deep under the stone.
 RADIO_ERZHAN,"Сынок, это Ержан. Я строил эту станцию в восьмидесятых. Скот падает без корма. Дай 6 зерна — а я отдам детали старого бура, они у меня в сарае.","Балам, бұл Ержан. Мен бұл станцияны сексенінші жылдары салғанмын. Мал жемсіз қырылып жатыр. 6 дән бер — мен ескі бұрғының бөлшектерін берейін, қорамда жатыр.","Son, this is Yerzhan. I built this station back in the eighties. The cattle are dying without feed. Give me 6 grain — and I'll hand over parts of an old drill from my shed."
-RADIO_ERZHAN_YES,"Поделиться зерном (−6)","Дәнмен бөлісу (−6)","Share the grain (−6)"
-RADIO_ERZHAN_NO,"Зерно нужно печам","Дән пештерге керек","The furnaces need the grain"
+RADIO_ERZHAN_YES,Поделиться зерном (−6),Дәнмен бөлісу (−6),Share the grain (−6)
+RADIO_ERZHAN_NO,Зерно нужно печам,Дән пештерге керек,The furnaces need the grain
 RADIO_ERZHAN_YES_R,"Рахмет, балам. Детали уже у тебя. И запомни: в самом низу, под тёмным камнем, жила без дна.","Рақмет, балам. Бөлшектер сенде. Есіңде болсын: ең төменде, қара тас астында түпсіз кен бар.","Thank you, son. The parts are yours. And remember: at the very bottom, under the dark stone, there is a vein with no end."
-RADIO_ERZHAN_NO_R,"Что ж… Машинам тоже надо есть.","Жарайды… Машиналар да қоректенуі керек.","Well… Machines have to eat too."
-RADIO_DAY5,"Последний день. Весь аул вышел на холм и смотрит на ракету. Нужно 50 слитков. Не подведи.","Соңғы күн. Бүкіл ауыл төбеге шығып, зымыранға қарап тұр. 50 құйма керек. Сенеміз.","The last day. The whole village is on the hill, watching the rocket. We need 50 ingots. Don't let us down."
+RADIO_ERZHAN_NO_R,Что ж… Машинам тоже надо есть.,Жарайды… Машиналар да қоректенуі керек.,Well… Machines have to eat too.
+RADIO_DAY5,Последний день. Весь аул вышел на холм и смотрит на ракету. Нужно 50 слитков. Не подведи.,"Соңғы күн. Бүкіл ауыл төбеге шығып, зымыранға қарап тұр. 50 құйма керек. Сенеміз.","The last day. The whole village is on the hill, watching the rocket. We need 50 ingots. Don't let us down."
 END_EPILOGUE_2,"Спутник нашёл тучи, и на третий день пришёл дождь. Аул встречал его всем миром. Айша: «Оставайся. Здесь теперь есть что строить».","Спутник бұлттарды тапты, үшінші күні жаңбыр жауды. Ауыл оны түгел қарсы алды. Айша: «Қал. Мұнда енді салатын нәрсе бар».","The satellite found the clouds, and on the third day the rain came. The whole village met it together. Aisha: “Stay. There is something to build here now.”"
 END_EPILOGUE_1,"Спутник нашёл тучи, и на третий день пришёл дождь. Дождались не все, но аул жив. Айша: «Ты сделал, что мог. Спасибо».","Спутник бұлттарды тапты, үшінші күні жаңбыр жауды. Бәрі күтіп жете алмады, бірақ ауыл тірі. Айша: «Қолыңнан келгенді жасадың. Рақмет».","The satellite found the clouds, and on the third day the rain came. Not everyone waited it out, but the village lives. Aisha: “You did what you could. Thank you.”"
 END_EPILOGUE_0,"Спутник нашёл тучи, и на третий день пришёл дождь. Но встречать его было почти некому: аул опустел. Айша уехала последней.","Спутник бұлттарды тапты, үшінші күні жаңбыр жауды. Бірақ оны қарсы алатын ешкім қалмады: ауыл қаңырап қалды. Айша соңғы болып кетті.","The satellite found the clouds, and on the third day the rain came. But almost no one was left to meet it: the village stood empty. Aisha was the last to leave."

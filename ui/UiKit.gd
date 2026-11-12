@@ -8,11 +8,14 @@ const GOOD := Color("84c95a")
 const BAD := Color("f0705a")
 const WATER := Color("7cc4f2")
 const SHADOW := Color(0.06, 0.05, 0.1, 0.9)
-const FONT_SIZE := 22
-const SMALL_SIZE := 18
+# Пиксельный шрифт нарисован на сетке 12 px: ровные пиксели только на размерах, кратных 12.
+const PIXEL_FONT := "res://assets/fonts/DalaPixel.ttf"
+const FONT_SIZE := 24
+const SMALL_SIZE := 24
+const TINY_SIZE := 12
 const FONT_WEIGHT := 600
 const FONT_WIDTH := 82
-const TITLE_SIZE := 16
+const TITLE_SIZE := 16         # Press Start 2P нарисован на сетке 8 px: 16, 24, 32
 const BOX_MARGIN := 8          # поля 9-patch (в текстуре 4 px, увеличено вдвое)
 const ICON := 32
 
@@ -23,17 +26,29 @@ static var _title_font: Font
 
 static func font() -> Font:
 	if _font == null:
-		var variation := FontVariation.new()
-		variation.base_font = load("res://assets/fonts/Tektur.ttf")
+		# Запасной шрифт для редких символов, которых нет в пиксельном (знаки, эмодзи из сценария).
+		var fallback := FontVariation.new()
+		fallback.base_font = load("res://assets/fonts/Tektur.ttf")
 		var server := TextServerManager.get_primary_interface()
-		variation.variation_opentype = {server.name_to_tag("wght"): FONT_WEIGHT, server.name_to_tag("wdth"): FONT_WIDTH}
-		_font = variation
+		fallback.variation_opentype = {server.name_to_tag("wght"): FONT_WEIGHT, server.name_to_tag("wdth"): FONT_WIDTH}
+		var pixel: FontFile = _crisp(load(PIXEL_FONT))
+		pixel.fallbacks = [fallback]
+		_font = pixel
 	return _font
+
+
+## Пиксельный шрифт без сглаживания и подгонки: иначе буквы «мылятся».
+static func _crisp(font: FontFile) -> FontFile:
+	font.antialiasing = TextServer.FONT_ANTIALIASING_NONE
+	font.hinting = TextServer.HINTING_NONE
+	font.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+	font.generate_mipmaps = false
+	return font
 
 
 static func title_font() -> Font:
 	if _title_font == null:
-		_title_font = load("res://assets/fonts/PressStart2P-Regular.ttf")
+		_title_font = _crisp(load("res://assets/fonts/PressStart2P-Regular.ttf"))
 	return _title_font
 
 

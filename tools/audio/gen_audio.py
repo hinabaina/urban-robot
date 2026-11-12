@@ -86,7 +86,13 @@ def pluck(freq, sec, damp=0.996):
     return out
 
 
+def blip():
+    """Тихий «блип» печати текста в рации (каждая третья буква)."""
+    save("blip", mix(square(660, 0.035, decay=70) * 0.4, sine(1320, 0.035, decay=80) * 0.3), 0.22)
+
+
 def effects():
+    blip()
     save("dig", mix(lowpass(noise(0.09, decay=40), 0.25), sine(95, 0.09, decay=35)), 0.7)
     save("ore", mix(sine(1320, 0.25, decay=14), pad(sine(1980, 0.25, decay=16), 0.05) * 0.7), 0.55)
     save("place", mix(square(180, 0.05, decay=60) * 0.6, lowpass(noise(0.04, decay=70), 0.5), pad(sine(520, 0.06, decay=40), 0.03)), 0.6)
