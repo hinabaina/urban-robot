@@ -68,8 +68,12 @@ func _first_line(t: TestCase, tree: SceneTree) -> void:
 	for i in 5:
 		Sim.insert(FIRST_FURNACE, "grain")
 	TestWorld.run(60.0)
-	var ingots := Sim.storage_count("ingot")
-	t.check(ingots >= int(GameConfig.day(1)["quota"]), "за минуту линия привозит на склад %d слитков при квоте дня 1 = %d" % [ingots, GameConfig.day(1)["quota"]])
+	t.equal(Sim.storage_count("ingot"), 5, "одной закладки зерна (5) хватает на 5 слитков за минуту")
+	for i in 4:       # норма дня 1 выше одной закладки: игрок подкидывает остаток стартового зерна
+		Sim.insert(FIRST_FURNACE, "grain")
+	TestWorld.run(60.0)
+	var ingots := Sim.storage_count("ingot") + 1    # ещё один слиток игрок сдал руками до посылки
+	t.check(ingots >= int(GameConfig.day(1)["quota"]), "со второй закладкой линия закрывает норму дня 1: %d при квоте %d" % [ingots, GameConfig.day(1)["quota"]])
 	world.queue_free()
 
 

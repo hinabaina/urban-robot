@@ -25,7 +25,8 @@ func teleport(cell: Vector2i) -> void:
 
 
 func scenario_checks() -> void:
-	Moment.enabled = false   # отдельные проверки двигают время сами; моменты проверяет scenario_tutorial
+	Moment.enabled = false   # отдельные проверки двигают время сами; моменты и рацию проверяет scenario_tutorial
+	Radio.enabled = false
 	player = main.get_node("Player")
 	world = main.get_node("World")
 	GameState.early_gift_given = true   # посылку дня 1 проверяет scenario_tutorial; здесь она мешала бы счёту карманов
@@ -212,6 +213,12 @@ func scenario_tutorial() -> void:
 	world = main.get_node("World")
 	var tutorial: Control = main.get_node("UI/Tutorial")
 	var step := func() -> int: return tutorial._index
+	var radio: Radio = main.get_node("UI/Radio")
+	await wait(0.2)
+	check("the game opens with Aisha's radio call, player is held", radio.is_open() and player.frozen)
+	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/radio_hello.png")
+	await _radio_through(radio)
+	check("after the call the player is free", not radio.is_open() and not player.frozen and DayCycle.running)
 	await hold(Actions.RIGHT, 0.5)
 	check("step 1 done after walking", step.call() == 1, step.call())
 	await teleport(Vector2i(32, 11))
@@ -251,9 +258,10 @@ func scenario_tutorial() -> void:
 	check("step 7 done: furnace placed", step.call() == 7, step.call())
 	await press(Actions.slot(4))
 	await _drag_belt(40, 43)
-	check("step 8 done after the first conveyor", step.call() == 8, step.call())
+	check("step 8 done when the belt reaches the furnace", step.call() == 8, step.call())
 	await teleport(Vector2i(47, 11))
 	await _drag_belt(46, 49)
+	check("step 9 done when the belt reaches the storage", step.call() == 9, step.call())
 	mouse_to_cell(Vector2i(45, 11))
 	await press(Actions.INTERACT)
 	check("E puts grain into the furnace", GameState.pockets["grain"] < 9, GameState.pockets)
@@ -262,14 +270,19 @@ func scenario_tutorial() -> void:
 	while Sim.storage_count("ingot") < 2 and seconds < 40.0:
 		await wait(1.0)
 		seconds += 1.0
-	check("step 9 done: the line delivers an ingot by itself within 40 s", step.call() == 9 and Sim.storage_count("ingot") >= 2,
+	check("step 10 done: the line delivers an ingot by itself within 40 s", step.call() == 10 and Sim.storage_count("ingot") >= 2,
 		[step.call(), Sim.storage_count("ingot"), seconds])
 	check("first automatic ingot plays its moment", GameState.moments_seen.has("auto"), GameState.moments_seen)
 	check("automation bar is live", GameState.live_automation() > 0.0, [GameState.made_auto, GameState.made_total])
 	while moment.is_playing():
 		await wait(0.1)
+	await wait(0.3)
+	check("Aisha reacts to the first hands-free ingot", radio.is_open())
+	await _radio_through(radio)
 	await wait(10.3)
 	check("tutorial finished, clock back to normal", not tutorial.is_active() and is_equal_approx(DayCycle.clock_scale, 1.0))
+	mouse_to_cell(Vector2i(45, 11))
+	await press(Actions.INTERACT)      # нормы 8 одной закладки зерна не хватает: подкидываем ещё
 	while Sim.storage_count("ingot") < GameState.quota() and seconds < 120.0:
 		await wait(1.0)
 		seconds += 1.0
@@ -278,6 +291,66 @@ func scenario_tutorial() -> void:
 
 
 ## Протянуть ленту по земле от клетки x0 до x1 зажатой ПКМ.
+## Сюжет по рации: выбор с насосом забирает слитки и меняет следующее утро, буря рвёт ленты, концовка зависит от решений.
+func scenario_story() -> void:
+	player = main.get_node("Player")
+	world = main.get_node("World")
+	Moment.enabled = false
+	main.get_node("UI/Tutorial")._finish()
+	var radio: Radio = main.get_node("UI/Radio")
+	await wait(0.2)
+	await _radio_through(radio)
+	var storage: Vector2i = world.marker_cell("Storage")
+	for i in 4:
+		Sim.insert(storage, "ingot")
+	GameState.day = 2
+	DayCycle.hour = 6.5
+	await wait(0.3)
+	await _radio_through(radio)          # утренний звонок дня 2
+	DayCycle.hour = 10.0
+	await wait(0.3)
+	check("pump dilemma is on air", radio.is_open() and GameState.story_done.has("pump"), GameState.story_done)
+	radio.press(-1)                      # допечатать текст
+	await wait(0.1)
+	get_viewport().get_texture().get_image().save_png(OS.get_cmdline_user_args()[0].get_base_dir() + "/radio_choice.png")
+	radio.press(0)                       # отдать 3 слитка
+	await wait(0.1)
+	check("helping costs 3 ingots from storage and is remembered", Sim.storage_count("ingot") == 1 and GameState.story_flags.has("pump"),
+		[Sim.storage_count("ingot"), GameState.story_flags])
+	await _radio_through(radio)
+	var grain: int = GameState.pockets["grain"]
+	GameState.day = 3
+	DayCycle.hour = 6.5
+	await wait(0.3)
+	check("next morning the village thanks with grain", radio.is_open() and GameState.pockets["grain"] == grain + 8
+		and not GameState.story_done.has("day3_bad"), [GameState.pockets, GameState.story_done])
+	await _radio_through(radio)
+	for x in range(40, 46):
+		Sim.place_machine("conveyor", Vector2i(x, 11), Vector2i.RIGHT)
+	DayCycle.hour = 11.0
+	await wait(0.3)
+	radio.press(-1)
+	await wait(0.1)
+	radio.press(1)                       # работать в бурю
+	await wait(0.1)
+	var belts := Sim.get_machines().filter(func(m): return m.get("type") == "conveyor").size()
+	check("working through the storm tears 3 belts", belts == 3, belts)
+	await _radio_through(radio)
+	check("game runs again after the call", DayCycle.running and not player.frozen)
+	main.get_node("UI/EndScreen").open(true)
+	await wait(0.2)
+	print("RESULT: ", "ALL PASS" if failed == 0 else "%d FAILED" % failed)
+
+
+## Дослушать рацию до конца, нажимая «дальше» (в выборе — первый вариант).
+func _radio_through(radio: Radio) -> void:
+	var guard := 0
+	while radio.is_open() and guard < 40:
+		radio.press(0)
+		await wait(0.1)
+		guard += 1
+
+
 func _drag_belt(x0: int, x1: int) -> void:
 	mouse_to_cell(Vector2i(x0, 11))
 	await get_tree().process_frame

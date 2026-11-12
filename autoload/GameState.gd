@@ -22,6 +22,8 @@ var delivered_auto := 0
 var finished := false
 var made_total := 0                # все слитки, пришедшие на склад (для живой полосы автоматизации)
 var made_auto := 0                 # из них без рук
+var story_done: Array = []         # звонки по рации (ui/Radio.gd), которые уже были
+var story_flags: Array = []        # решения игрока: "pump", "erzhan"
 var moments_seen: Array = []       # кинематографичные моменты (ui/Moment.gd), уже показанные в этой партии
 var early_gift_given := false     # посылка первого дня (чертежи машин) уже сброшена
 
@@ -166,7 +168,8 @@ func _apply_gift(gift: Dictionary) -> void:
 func to_dict() -> Dictionary:
 	return {"day": day, "trust": trust, "pockets": pockets.duplicate(), "water": water, "unlocked": unlocked.duplicate(),
 		"rocket": rocket.duplicate(true), "delivered_total": delivered_total, "delivered_auto": delivered_auto, "early_gift_given": early_gift_given,
-		"moments_seen": moments_seen.duplicate(), "made_total": made_total, "made_auto": made_auto}
+		"moments_seen": moments_seen.duplicate(), "made_total": made_total, "made_auto": made_auto,
+		"story_done": story_done.duplicate(), "story_flags": story_flags.duplicate()}
 
 
 ## Восстановить состояние (загрузка сохранения или новая игра). Отсутствующие поля — как в начале партии.
@@ -185,6 +188,8 @@ func from_dict(d: Dictionary) -> void:
 	moments_seen.assign(d.get("moments_seen", []))
 	made_total = int(d.get("made_total", 0))
 	made_auto = int(d.get("made_auto", 0))
+	story_done.assign(d.get("story_done", []))
+	story_flags.assign(d.get("story_flags", []))
 	finished = false
 	_emit_all()
 

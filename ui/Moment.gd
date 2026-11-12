@@ -117,7 +117,7 @@ func _hide_ui() -> Array:
 	var hidden := []
 	for node in get_parent().get_children():
 		if node == self:
-			break        # всё, что выше момента (пауза, меню), не трогаем
+			break        # всё, что выше момента (рация, пауза, меню), не трогаем
 		if node is CanvasItem and node.visible:
 			hidden.append(node)
 			create_tween().tween_property(node, "modulate:a", 0.0, UI_FADE)

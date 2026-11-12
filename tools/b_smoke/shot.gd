@@ -14,6 +14,9 @@ func _ready() -> void:
 		get_tree().quit(1))
 	var scenario: String = args[2] if args.size() > 2 else ""
 	load("res://main/Main.gd").skip_menu = not scenario.begins_with("menu")
+	# Рация и кино-моменты останавливают игру; их проверяют только сценарии tutorial и story.
+	Radio.enabled = scenario in ["tutorial", "story"]
+	Moment.enabled = Radio.enabled
 	main = load("res://main/Main.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(main)
 	await get_tree().create_timer(0.3).timeout

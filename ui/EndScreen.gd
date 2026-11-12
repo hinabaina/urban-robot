@@ -20,6 +20,9 @@ func open(won: bool) -> void:
 	var list := UiKit.window(self)
 	_add(list, UiKit.title(tr("END_WIN_TITLE" if won else "END_LOSE_TITLE"), UiKit.TITLE_SIZE, UiKit.GOOD if won else UiKit.BAD))
 	_add(list, UiKit.label(tr("END_WIN_TEXT" if won else "END_LOSE_TEXT")))
+	if won:   # эпилог зависит от того, помогал ли игрок аулу (решения по рации)
+		var helped := int(GameState.story_flags.has("pump")) + int(GameState.story_flags.has("erzhan"))
+		_add(list, UiKit.label(tr("END_EPILOGUE_%d" % helped), UiKit.FONT_SIZE, UiKit.ACCENT))
 	if won:
 		_add_stars(list)
 	_add(list, UiKit.label(tr("END_STATS") % [GameState.delivered_total, int(round(GameState.automation() * 100.0))]))

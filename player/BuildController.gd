@@ -80,14 +80,15 @@ func _start_placing(action: StringName, loud: bool) -> void:
 	_try_place(loud)
 
 
-## ЛКМ ставит, если в руке семена или машина, а под курсором нет спелой грядки (её ЛКМ собирает).
+## ЛКМ ставит, если в руке семена или машина. Исключение одно: под курсором спелая грядка — её ЛКМ собирает.
 func _left_click_builds() -> bool:
 	var id := selected_id()
 	if id != "seed" and not MachineCatalog.is_machine(id):
 		return false
 	var cell := TileCatalog.cell_at(get_global_mouse_position())
+	var ripe := int(GameConfig.player()["ripe_stage"])
 	for crop in Sim.get_crops():
-		if crop.get("cell") in [cell, cell + Vector2i.DOWN] and id != "seed":
+		if crop.get("cell") in [cell, cell + Vector2i.DOWN] and int(crop.get("stage")) >= ripe:
 			return false
 	return true
 
@@ -132,6 +133,10 @@ func _try_place(loud: bool) -> void:
 	if ghost["ok"] and Sim.place_machine(ghost["type"], ghost["cell"], ghost["dir"]):
 		GameState.pay(MachineCatalog.cost(ghost["type"]))
 		GameState.report("placed:" + ghost["type"])
+		if ghost["type"] == "conveyor":   # лента упёрлась в машину: обучение ждёт «лента дошла до печи / до склада»
+			var next := MachineCatalog.find(ghost["cell"] + ghost["dir"])
+			if not next.is_empty():
+				GameState.report("belt_into:" + next["type"])
 		Audio.play("place")
 	elif loud:
 		GameState.notify(ghost["reason"])
