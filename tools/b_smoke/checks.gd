@@ -37,7 +37,9 @@ func scenario_checks() -> void:
 	await _building()
 	await _tools()
 	await _pause()
+	await _saving()
 	await _day_end()
+	_retry_button()
 	await _intro()
 	await _languages()
 	await _info_page()
@@ -239,6 +241,39 @@ func _pause() -> void:
 	check("Esc pauses", get_tree().paused and main.get_node("UI/PauseMenu").visible)
 	await press(Actions.PAUSE)
 	check("Esc resumes", not get_tree().paused and not main.get_node("UI/PauseMenu").visible)
+
+
+## Утро сохраняется само; «Продолжить» поднимает день, карманы и машины из файла.
+func _saving() -> void:
+	SaveManager.delete_save()
+	DayCycle.day_started.emit(GameState.day)
+	check("morning autosave written", SaveManager.has_save() and not SaveManager.read().is_empty())
+	var saved := SaveManager.read()
+	saved["game"]["day"] = 3
+	saved["game"]["pockets"]["ore"] = 7
+	var file := FileAccess.open(SaveManager.SAVE_PATH, FileAccess.WRITE)
+	file.store_string(JSON.stringify(saved))
+	file.close()
+	var machines: int = Sim.get_machines().size()
+	var campfire: Vector2i = world.marker_cell("Campfire")
+	Sim.remove_machine(campfire)
+	GameState.day = 1
+	GameState.pockets["ore"] = 0
+	main._load_morning()
+	await wait(0.2)
+	check("continue restores the day", GameState.day == 3, GameState.day)
+	check("continue restores pockets", int(GameState.pockets.get("ore", 0)) == 7, GameState.pockets)
+	check("continue restores machines and their sprites", Sim.get_machines().size() == machines
+		and main.get_node("MachineView")._nodes.has(campfire), [Sim.get_machines().size(), machines])
+
+
+## После поражения можно переиграть день с утреннего сохранения.
+func _retry_button() -> void:
+	var found := false
+	for node in main.get_node("UI/EndScreen").find_children("*", "Button", true, false):
+		found = found or (node as Button).text == tr("END_RETRY")
+	check("lost game offers retry of the day", found)
+	SaveManager.delete_save()
 
 
 func _day_end() -> void:

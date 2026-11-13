@@ -21,6 +21,11 @@ func _ready() -> void:
 	_sync(false)
 
 
+## Без анимации: после загрузки сохранения.
+func sync_now() -> void:
+	_sync(false)
+
+
 ## Привести картинку к GameState.rocket (после загрузки или новой игры — без анимации).
 func _sync(animate: bool) -> void:
 	if GameState.rocket.size() < _built:
