@@ -22,9 +22,18 @@ func save_morning() -> bool:
 	var file := FileAccess.open(TEMP_PATH, FileAccess.WRITE)
 	if file == null:
 		return false
-	file.store_string(JSON.stringify(payload))
+	var text := JSON.stringify(payload)
+	file.store_string(text)
 	file.close()
-	return DirAccess.rename_absolute(TEMP_PATH, SAVE_PATH) == OK
+	if DirAccess.rename_absolute(TEMP_PATH, SAVE_PATH) == OK:
+		return true
+	# Где переименование не поддерживается, пишем напрямую: лучше так, чем остаться без сохранения.
+	file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(text)
+	file.close()
+	return true
 
 
 ## Загрузить последнее утро («Продолжить», «Повторить день»). Мир должен быть уже загружен

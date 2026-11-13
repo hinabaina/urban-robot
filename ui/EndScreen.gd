@@ -2,6 +2,7 @@
 extends Control
 
 signal restart_pressed()
+signal retry_pressed()      # поражение: начать последний день заново с утра
 
 const STAR := 48
 const STAR_KEYS := ["END_STARS_1", "END_STARS_2", "END_STARS_3"]
@@ -28,11 +29,17 @@ func open(won: bool) -> void:
 	_add(list, UiKit.label(tr("END_STATS") % [GameState.delivered_total, int(round(GameState.automation() * 100.0))]))
 	if won and Settings.submit_record(GameState.stars(), GameState.automation()):
 		_add(list, UiKit.label(tr("END_RECORD"), UiKit.FONT_SIZE, UiKit.ACCENT))
-	var button := UiKit.button(tr("END_RESTART"), func() -> void: restart_pressed.emit())
-	button.custom_minimum_size.x = 220
+	if not won and not SaveManager.read().is_empty():
+		_add_button(list, "END_RETRY", func() -> void: retry_pressed.emit())
+	_add_button(list, "END_RESTART", func() -> void: restart_pressed.emit())
+	visible = true
+
+
+func _add_button(list: VBoxContainer, key: String, on_press: Callable) -> void:
+	var button := UiKit.button(tr(key), on_press)
+	button.custom_minimum_size.x = 260
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	list.add_child(button)
-	visible = true
 
 
 func _epilogue() -> Array:

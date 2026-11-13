@@ -46,12 +46,18 @@ REPORT_AUTOMATION,Автоматизация за всю игру: %d%%,Бүкі
 REPORT_GIFT,Дрон привёз чертежи: %s,Дрон сызбалар әкелді: %s,The drone brought blueprints: %s
 REPORT_NEXT_QUOTA,Квота на сегодня: %d слитков,Бүгінгі квота: %d құйма,Today's quota: %d ingots
 REPORT_BUTTON,Утро,Таң,Morning
+REPORT_BOTTLENECK,"Узкое место: %s, простой %d%% ночи (%s)","Тар жер: %s, түннің %d%% тұрды (%s)","Bottleneck: %s, idle %d%% of the night (%s)"
+REPORT_WHY_BLOCKED,выход забит,шығысы бітелген,output jammed
+REPORT_WHY_NO_FUEL,нет топлива,отын жоқ,no fuel
+REPORT_WHY_NO_WATER,нет воды,су жоқ,no water
+REPORT_WHY_EXHAUSTED,жила иссякла,кен таусылды,vein exhausted
 END_WIN_TITLE,Ракета запущена!,Зымыран ұшырылды!,Rocket launched!
 END_LOSE_TITLE,Проект закрыт,Жоба жабылды,Project shut down
 END_WIN_TEXT,Метеоспутник на орбите. Фермеры степи узнают о бурях заранее,Метеоспутник орбитада. Дала фермерлері дауыл туралы алдын ала біледі,The weather satellite is in orbit. Steppe farmers will know about storms in advance
 END_LOSE_TEXT,Доверие закончилось: фабрика не успевала за квотами,Сенім таусылды: зауыт квотаға үлгермеді,Out of trust: the factory couldn't keep up with the quotas
 END_STATS,Сдано слитков: %d · Автоматизация: %d%%,Тапсырылған құйма: %d · Автоматтандыру: %d%%,Ingots delivered: %d · Automation: %d%%
 END_RESTART,Начать сначала,Басынан бастау,Start over
+END_RETRY,Повторить день с утра,Күнді таңнан қайталау,Retry the day
 PAUSE_TITLE,Пауза,Кідіріс,Pause
 PAUSE_CONTINUE,Продолжить,Жалғастыру,Continue
 PAUSE_RESTART,Начать сначала,Басынан бастау,Start over

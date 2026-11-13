@@ -1,6 +1,8 @@
 # Ночной отчёт («газета»): что сделала фабрика, сколько сдано, что привёз дрон. Кнопка «Утро». Владелец: B.
 extends Control
 
+const BOTTLENECK_MIN_SHARE := 0.1   # простой меньше 10% ночи не показываем
+
 var _list: VBoxContainer
 var _last_result := {}
 
@@ -25,6 +27,7 @@ func _show(day: int) -> void:
 		var color := UiKit.GOOD if _last_result["ok"] else UiKit.BAD
 		_add(UiKit.label(tr("REPORT_DELIVERED") % [_last_result["taken"], _last_result["quota"]], UiKit.FONT_SIZE, color))
 	_add(UiKit.label(tr("REPORT_AUTOMATION") % int(round(GameState.automation() * 100.0))))
+	_add_bottleneck()
 	if not GameState.bonds.is_empty():   # отношения с героями рации (ui/Radio.gd)
 		var bonds := []
 		for who in GameState.bonds:
@@ -44,6 +47,18 @@ func _show(day: int) -> void:
 	button.custom_minimum_size.x = 180
 	_add(button)
 	visible = true
+
+
+## Узкое место ночи: машина, которая дольше всех простояла, и почему. Подсказка, что улучшать утром.
+func _add_bottleneck() -> void:
+	var worst: Dictionary = Sim.night_summary().get("bottleneck", {})
+	if worst.is_empty() or float(worst["share"]) < BOTTLENECK_MIN_SHARE:
+		return
+	var why := {Sim.State.BLOCKED: "REPORT_WHY_BLOCKED", Sim.State.NO_FUEL: "REPORT_WHY_NO_FUEL",
+		Sim.State.NO_WATER: "REPORT_WHY_NO_WATER", Sim.State.EXHAUSTED: "REPORT_WHY_EXHAUSTED"}
+	var text := tr("REPORT_BOTTLENECK") % [tr("SLOT_" + str(worst["type"])).to_lower(), int(round(float(worst["share"]) * 100.0)),
+		tr(why.get(int(worst["state"]), "REPORT_WHY_BLOCKED"))]
+	_add(UiKit.label(text, UiKit.FONT_SIZE, UiKit.BAD))
 
 
 func _add(node: Control) -> void:

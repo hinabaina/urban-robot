@@ -6,6 +6,7 @@ const LAUNCH_CAMERA_RISE := 60.0
 const INTRO_FADE := 0.6          # меню уходит в темноту перед роликом
 
 static var skip_menu := false    # после «Начать сначала» меню не показываем
+static var load_save := false    # «Продолжить» или «Повторить день»: после перезагрузки сцены поднять утреннее сохранение
 
 var _won := false
 
@@ -51,6 +52,7 @@ func _ready() -> void:
 	DayCycle.day_started.connect(func(_day: int) -> void: _wake_up())
 	DayCycle.day_started.connect(func(_day: int) -> void: Audio.start_music())
 	DayCycle.evening.connect(func() -> void: Audio.play("drone"))
+	DayCycle.day_started.connect(func(_day: int) -> void: SaveManager.save_morning())   # каждое утро, после ночного отчёта
 	world.start_new()
 	$CropView.refresh()
 	rocket.position = world.marker_pos("Rocket") + Vector2(TileCatalog.TILE, TileCatalog.TILE) * 0.5
@@ -76,19 +78,24 @@ func _ready() -> void:
 	$UI.move_child(radio, $UI/PauseMenu.get_index())
 	radio.setup(player, moment)
 	_wake_up()
-	GameState.emit_quota()
 	DayCycle.reset()
+	if load_save:
+		load_save = false
+		_load_morning()
+	GameState.emit_quota()
 	player.frozen = true
 	if skip_menu:
 		_start_playing()
 	elif not Settings.get_value("locale_chosen"):
 		_pick_language()
 	else:
+		menu.can_continue = not SaveManager.read().is_empty()
 		menu.open()
 
 
 func _connect_menus() -> void:
 	menu.new_game_pressed.connect(_on_new_game)
+	menu.continue_pressed.connect(_continue_saved)
 	menu.intro_pressed.connect(_play_intro.bind(menu.open))
 	menu.settings_pressed.connect(func() -> void: _open_settings(true))
 	menu.page_pressed.connect(info_page.open)
@@ -98,6 +105,7 @@ func _connect_menus() -> void:
 	pause_menu.menu_pressed.connect(restart.bind(true))
 	settings_panel.locale_changed.connect(restart.bind(true))
 	$UI/EndScreen.restart_pressed.connect(restart.bind(false))
+	$UI/EndScreen.retry_pressed.connect(_continue_saved)
 
 
 ## Самый первый запуск: выбор языка, потом меню на этом языке.
@@ -117,7 +125,24 @@ func _open_settings(allow_locale: bool) -> void:
 
 ## «Новая игра»: всегда сначала вступительный ролик (пропуск удержанием Пробела), потом игра и звонок по рации.
 func _on_new_game() -> void:
+	SaveManager.delete_save()
 	_play_intro(_start_playing)
+
+
+## «Продолжить» в меню и «Повторить день» после поражения: перезапустить сцену с утра последнего сохранённого дня.
+func _continue_saved() -> void:
+	load_save = true
+	restart(false)
+
+
+## Поднять утреннее сохранение поверх только что собранного мира. Симуляция сама рассылает сигналы о тайлах
+## и машинах, поэтому вид перерисовывается; грядки и ракету синхронизируем отдельно.
+func _load_morning() -> void:
+	if not SaveManager.load_morning():
+		GameState.new_game()
+		return
+	$CropView.refresh()
+	rocket.sync_now()
 
 
 ## Показать ролик поверх мира; after вызывается, когда экран уже тёмный.
@@ -170,6 +195,7 @@ func _on_phase(phase: int) -> void:
 	player.frozen = phase in [DayCycle.Phase.NIGHT, DayCycle.Phase.REPORT, DayCycle.Phase.OVER]
 	if phase == DayCycle.Phase.OVER:
 		if _won:
+			SaveManager.delete_save()   # партия окончена; после поражения утро остаётся для «Повторить день»
 			await _play_launch()
 		$UI/EndScreen.open(_won)
 

@@ -27,7 +27,8 @@ func open() -> void:
 	var title := UiKit.title("DALA WORKS", TITLE_SIZE, UiKit.ACCENT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list.add_child(title)
-	for key in STORY:
+	# С сохранением сюжет игроку уже знаком: одна строка вместо трёх, чтобы кнопка «Продолжить» влезла на экран.
+	for key in (STORY.slice(0, 1) if can_continue else STORY):
 		var line := UiKit.label(tr(key), UiKit.SMALL_SIZE, UiKit.TEXT)
 		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
