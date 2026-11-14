@@ -326,6 +326,7 @@ func scenario_tutorial() -> void:
 	while moment.is_playing():
 		await wait(0.1)
 	check("after the moment the player can move again", not player.frozen and DayCycle.running)
+	check("after the moment its title is gone from the screen", moment._title.text == "" and moment._subtitle.text == "", moment._title.text)
 	check("parcel has parts for the first line", GameState.pockets["ingot"] == 5 and GameState.pockets["ore"] >= 24, GameState.pockets)
 	await teleport(Vector2i(41, 11))
 	await _radio_through(main.get_node("UI/Radio"))
