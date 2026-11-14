@@ -116,6 +116,9 @@ func _next() -> void:
 	back.tween_property(_subtitle, "modulate:a", 0.0, OUT_TIME * 0.6)
 	_hold.visible = false
 	await back.finished
+	# Заголовок и подпись очищаем, а не только прячем: иначе после возврата прозрачности текст остаётся висеть над хотбаром.
+	_title.text = ""
+	_subtitle.text = ""
 	_title.modulate.a = 1.0
 	_player.frozen = DayCycle.phase in [DayCycle.Phase.NIGHT, DayCycle.Phase.REPORT, DayCycle.Phase.OVER]
 	DayCycle.running = was_running
